@@ -6,6 +6,7 @@
 #'   should be the intercept term.
 #' @param X Numeric matrix of predictors.
 #' @param y Integer vector of outcome, preferably coded as 1 (event) vs -1 (non-event).
+#' @export
 compute_mr_model <- function(model_py, model_class = "logit", coef_vec = NULL,
                              var_names = NULL,
                              X, y, check_convergence = FALSE) {
@@ -24,29 +25,6 @@ compute_mr_model <- function(model_py, model_class = "logit", coef_vec = NULL,
              coef = coef_vec, var_name = var_names,
              sage_value = c(NA, sage_values$values),
              sage_sd = c(NA, sage_values$std))
-}
-#' Compute SAGE model reliance for a model, uing ShapleyReg approximation
-#' @param model_py A callable model object to pass to Python.
-#' @param model_class Model class. Currently only supports \code{"logit"} for
-#'   logistic regression model.
-#' @param coef_vec Named numeric vector of model coefficients. The first element
-#'   should be the intercept term.
-#' @param X_train Numeric matrix of predictors in training set.
-#' @param X Numeric matrix of predictors.
-#' @param y Integer vector of outcome, preferably coded as 1 (event) vs -1 (non-event).
-compute_mr_model_reg <- function(model_class = "logit", coef_int, coef,
-                                 X_train, y_train, X, y) {
-  # reticulate::source_python("inst/compute_sage_value_reg.py")
-  sage_values <- compute_sage_value_logit_reg(
-    intercept = coef_int, coef = coef,
-    X_train = X_train, Y_train = y_train,
-    X_test = X, Y_test = y
-  )
-  sage_values
-  # data.frame(model_class = model_class,
-  #            coef = coef_vec, var_name = names(coef_vec),
-  #            sage_value = c(NA, sage_values$values),
-  #            sage_sd = c(NA, sage_values$std))
 }
 #' Compute cross entropy loss for a logistic regression model
 #' @param coef_vec Regression coefficients of the logistic regression. The first

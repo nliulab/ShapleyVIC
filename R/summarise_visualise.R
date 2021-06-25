@@ -192,32 +192,3 @@ rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
     rank(-count_v1_gt_v2, ties.method = ties.method)
   }
 }
-#' Rank variables by the 95\% CI of SAGE-based model reliance
-#' @param val A numeric vector of SAGE-based model reliance.
-#' @param val_sd A numeric vector of standard deviations of SAGE-based model
-#'   reliance of the same length as \code{val}. Supply \code{NULL} if
-#'   unavailable.
-#' @param ties.method How to handle tied ranks. Default is \code{"min"}. See
-#'   \code{\link{rank}}.
-#' @return Returns an integer vector of ranks of variables in descending order,
-#'   based on pairwise t-test for equal model reliance for neighbouring variables.
-#' @export
-rank_variables_old <- function(val, val_sd = NULL, ties.method = "min") {
-  if (is.null(val_sd)) {
-    rank(-val, ties.method = ties.method)
-  } else {
-    val_df <- data.frame(var_id = 1:length(val), val = val, val_sd = val_sd)
-    val_df <- val_df[order(val_df$val, decreasing = TRUE), ]
-    val_df$order <- 1:nrow(val_df)
-    val_df$pairwise_pval <- c(1, unlist(lapply(2:nrow(val_df), function(i) {
-      val_diff <- val_df$val[i - 1] - val_df$val[i]
-      sd_diff <- sqrt(val_df$val_sd[i - 1] ^ 2 + val_df$val_sd[i] ^ 2)
-      2 * pnorm(abs(val_diff / sd_diff), lower.tail = FALSE)
-    })))
-    val_df$pairwise_sig <- as.numeric(val_df$pairwise_pval < 0.05)
-    val_df$order_sig <- rank(1 + cumsum(val_df$pairwise_sig),
-                             ties.method = ties.method)
-    val_df <- val_df[order(val_df$var_id), ]
-    val_df$order_sig
-  }
-}
