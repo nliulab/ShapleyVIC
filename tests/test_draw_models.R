@@ -117,7 +117,7 @@ ggplot(data = data.frame(x = unique(df_imp_vic$loss) / loss_optim), aes(x = x)) 
 # -----
 
 library(dplyr)
-load("../ShapleyVIC/Analysis/data/testdf6_mimic_20000.Rdata")
+load("../../Analysis/data/testdf6_mimic_20000.Rdata")
 X <- testdf6_mimic_20000 %>% select(-label) %>% as.data.frame()
 y <- as.numeric(as.character(testdf6_mimic_20000$label))
 # SAGE suggest test size<=1024
@@ -128,12 +128,20 @@ y_train <- matrix(y[-i_test], ncol = 1)
 X_test <- as.matrix(X[i_test, ])
 y_test <- matrix(y[i_test], ncol = 1)
 m_optim_r <- glm((y_train == 1) ~ X_train, family = "binomial")
+
 coef_df <- ShapleyVIC::draw_models(coef_optim = coef(m_optim_r),
                                    coef_optim_var = vcov(m_optim_r),
                                    design_mat = cbind(1, X_train), y = y_train,
                                    M = 800, u1 = 0.5, u2 = 20, epsilon = 0.05,
                                    n_final = 350)
 saveRDS(coef_df, file = "~/coef_df_mimic_0609.RDS")
+
+coef_df <- ShapleyVIC::draw_models(coef_optim = coef(m_optim_r),
+                                   coef_optim_var = vcov(m_optim_r),
+                                   design_mat = cbind(1, X_train), y = y_train,
+                                   M = 800, u1 = 0.5, u2 = 20, epsilon = 0.05,
+                                   n_final = 400)
+saveRDS(coef_df, file = "~/coef_df_mimic_0628.RDS")
 
 compute_loss_logit <- function(beta, x_df, y) {
   if (!all(y %in% c(-1, 1))) {

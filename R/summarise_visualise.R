@@ -121,6 +121,11 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
     dt$val_lower <- val_lower
     dt$val_upper <- val_upper
   }
+  common_theme <- theme(panel.grid.major.y = element_line(colour = "grey95"),
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_blank(),
+                        axis.line.x = element_line(colour = "black"),
+                        axis.ticks.y = element_blank())
   if (!is.null(sign_vec)) {
     dt$sign_vec_factor <- factor(sign_vec)
     color_vec <- set_color_template(sign_vec = sign_vec,
@@ -128,8 +133,9 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
     p <- ggplot(data = dt,
                 mapping = aes_string(x = "variables", y = "val",
                                      fill = "sign_vec_factor")) +
+      geom_hline(yintercept = 0, color = "grey") +
       geom_bar(stat = "identity") +
-      theme_bw() +
+      common_theme +
       coord_flip() +
       labs(x = "", y = "", title = title, subtitle = subtitle) +
       theme(legend.position = "none") +
@@ -137,8 +143,9 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
   } else {
     p <- ggplot(data = dt,
                 mapping = aes_string(x = "variables", y = "val")) +
+      geom_hline(yintercept = 0, color = "grey") +
       geom_bar(stat = "identity") +
-      theme_bw() +
+      common_theme +
       coord_flip() +
       labs(x = "", y = "", title = title, subtitle = subtitle) +
       theme(legend.position = "none")
@@ -155,7 +162,7 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
       geom_errorbar(aes_string(ymin = "val_lower", ymax = "val_upper"),
                     width = 0.2)
   }
-  print(p)
+  p
 }
 #' Rank variables based on pairwise comparison of SAGE-based model reliance
 #' @param val A numeric vector of SAGE-based model reliance.
@@ -191,4 +198,108 @@ rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
     count_v1_gt_v2 <- tapply(val_df$pval_v1_gt_v2_sig, val_df$i1, sum)
     rank(-count_v1_gt_v2, ties.method = ties.method)
   }
+}
+#' Prepare data for making colored violin plot
+#' @param var_names Factor of variable names. Must be a factor.
+#' @param val Model reliance.
+#' @param loss_ratio Ratio of loss to optimal loss, to determine color.
+#' @import tidyverse
+prep_data_zebra <- function(var_names, val, loss_ratio, my_width = 0.35) {
+  df <- data.frame(x = var_names, y = val, loss_ratio = loss_ratio)
+  p <- df %>% ggplot(aes(x = x, y = y)) + geom_violin(trim = TRUE)
+  # This is all you need for the fill:
+  vl_fill <- data.frame(ggplot_build(p)$data) %>%
+    group_by(x) %>%
+    mutate(width = violinwidth / max(violinwidth)) %>%
+    ungroup() %>%
+    mutate(xnew = x - my_width * width, xend = x + my_width * width)
+  # color by population
+  x_lvls <- levels(df$x)
+  vl_fill2 <- do.call("rbind", lapply(unique(vl_fill$x), function(xi) {
+    dat_i <- df[df$x == x_lvls[xi], ]
+    vl_fill_i <- vl_fill[vl_fill$x == xi, ]
+    n_i <- nrow(vl_fill_i)
+    y_color <- rep(NA, n_i)
+    for (i in 1:n_i) {
+      rows <- which(dat_i$y < vl_fill_i$ymax[i])
+      if (length(rows) > 0) {
+        y_color[i] <- mean(dat_i$loss_ratio[rows])
+        dat_i <- dat_i[-rows, ]
+      }
+    }
+    vl_fill_i <- vl_fill_i %>%
+      mutate(y_color = y_color) %>%
+      fill(y_color, .direction = "updown")
+    vl_fill_i
+  })) %>%
+    mutate(y_color_cat = cut(y_color, right = FALSE,
+                             breaks = c(-Inf, 1.01, 1.02, 1.03, 1.04, Inf),
+                             labels = paste0("<", 1 + (1:5) / 100)))
+  # Bit convoluted for the outline, need to be rearranged: the order matters
+  vl_poly <- vl_fill2 %>%
+    select(xnew, xend, y, group) %>%
+    pivot_longer(-c(y, group), names_to = "oldx", values_to = "x") %>%
+    arrange(y) %>%
+    split(., .$oldx) %>%
+    purrr::map(., function(x) {
+      if (all(x$oldx == "xnew")) x <- arrange(x, desc(y))
+      x
+    }) %>%
+    bind_rows()
+  list(df_zebra_color = vl_fill2, df_violin_shape = vl_poly)
+}
+#' Draw colored violin plot for model reliance.
+#' @param var_names Factor of variable names. Must be a factor.
+#' @param val Model reliance.
+#' @param loss_ratio Ratio of loss to optimal loss, to determine color.
+#' @param title Title of violin plot. Default is an empty string.
+#' @param colored Whether the violins should be colored by model loss.
+#' @import ggplot2
+#' @import RColorBrewer
+#' @import ggpubr
+#' @export
+draw_violins <- function(var_names, val, loss_ratio, title = "", colored = TRUE,
+                         my_width = 0.35) {
+  # First prepare the list of two data.frames for the shape and color strips
+  # of violins:
+  df_violin_list <- prep_data_zebra(var_names = var_names,
+                                    val = val, loss_ratio = loss_ratio)
+  x_lvls <- levels(var_names)
+  # The shape of violins are always plotted:
+  p <- ggplot() +
+    geom_hline(yintercept = 0, color = "grey") +
+    geom_polygon(data = df_violin_list$df_violin_shape,
+                 aes_string(x = "x", y = "y", group = "group"),
+                 color = "grey", size = 1, fill = "white") +
+    coord_flip() +
+    scale_x_continuous(breaks = seq_along(x_lvls), labels = x_lvls) +
+    theme(panel.grid.major.y = element_line(colour = "grey95"),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(),
+          axis.line.x = element_line(colour = "black"),
+          axis.ticks.y = element_blank()) +
+    # labs(x = "", y = "", title = title)
+    labs(x = "", y = "Model reliance", title = title)
+  # If colored, also add color strips:
+  if (colored) {
+    # First create a legend for fill, which looks nicer than default legend for
+    # color:
+    p_color_legend <- p +
+      geom_tile(data = df_violin_list$df_zebra_color,
+                aes_string(x = "xnew", y = "y", fill = "y_color_cat")) +
+      scale_fill_manual(values = rev(RColorBrewer::brewer.pal(n = 6, name = "Blues")[-1])) +
+      guides(fill = guide_legend(title = "Model loss (as ratio to minimum loss)")) +
+      theme(legend.position = "bottom")
+    color_legend <- ggpubr::get_legend(p_color_legend)
+    # Then make the colored violin plots:
+    p <- p +
+      geom_segment(data = df_violin_list$df_zebra_color,
+                   aes_string(x = "xnew", xend = "xend", y = "y", yend = "y",
+                              color = "y_color_cat")) +
+      scale_color_manual(values = rev(RColorBrewer::brewer.pal(n = 6, name = "Blues")[-1])) +
+      theme(legend.position = "none")
+    # Finally, combine plot with legend:
+    p <- ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")
+  }
+  p
 }
