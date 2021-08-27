@@ -7,10 +7,12 @@
 draw_violins(
   var_names,
   val,
-  loss_ratio,
+  perf_metric,
+  smaller_is_better = TRUE,
   title = "",
   colored = TRUE,
-  my_width = 0.35
+  my_width = 0.35,
+  perf_metric_breaks = c(1.01, 1.02, 1.03, 1.04)
 )
 }
 \arguments{
@@ -18,11 +20,11 @@ draw_violins(
 
 \item{val}{Model reliance.}
 
-\item{loss_ratio}{Ratio of loss to optimal loss, to determine color.}
-
 \item{title}{Title of violin plot. Default is an empty string.}
 
 \item{colored}{Whether the violins should be colored by model loss.}
+
+\item{loss_ratio}{Ratio of loss to optimal loss, to determine color.}
 }
 \description{
 Draw colored violin plot for model reliance.

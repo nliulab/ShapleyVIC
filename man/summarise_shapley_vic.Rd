@@ -2,7 +2,7 @@
 % Please edit documentation in R/summarise_visualise.R
 \name{summarise_shapley_vic}
 \alias{summarise_shapley_vic}
-\title{Summarise ShapleyVIC values}
+\title{Summarize ShapleyVIC values}
 \usage{
 summarise_shapley_vic(val, val_sd, var_names)
 }
@@ -21,5 +21,5 @@ than \code{val}.}
 Returns a \code{data.frame}.
 }
 \description{
-Summarise ShapleyVIC values
+Summarize ShapleyVIC values
 }

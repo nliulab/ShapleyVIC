@@ -1,3 +1,4 @@
+#' Generate models from Rashomon set
 #' @import ggplot2
 #' @import gridExtra
 #' @export
@@ -50,6 +51,6 @@ draw_models <- function(coef_optim, coef_optim_var, design_mat, y,
   } else {
     p <- p1
   }
-  p
+  print(p)
   return(df)
 }
