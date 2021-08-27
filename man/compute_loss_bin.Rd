@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute_shaply_vic.R
 \name{compute_loss_bin}
 \alias{compute_loss_bin}
-\title{Compute cross entropy loss for a logistic regression model}
+\title{Compute logistic loss}
 \usage{
 compute_loss_bin(coef_vec, design_mat, y)
 }
@@ -12,8 +12,12 @@ element should be the intercept term.}
 
 \item{design_mat}{Design matrix corresponding to the coefficient vector.}
 
-\item{y}{Binary outcome. Events must be indicated by value \code{1}.}
+\item{y}{Binary outcome. Events must be indicated by value \code{1}.
+Non-events may be \code{0} or \code{-1}.}
+}
+\value{
+Returns the logistic loss.
 }
 \description{
-Compute cross entropy loss for a logistic regression model
+Compute logistic loss
 }
