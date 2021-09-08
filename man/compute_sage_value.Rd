@@ -23,9 +23,7 @@ intercept term as the first element), to replace the coefficients in
 \code{model_py} will be used.}
 
 \item{var_names}{String vector of name of model coefficients. Default is
-\code{NULL}, in which case \code{names(coef_vec)} will be used. If
-\code{coef_vec} is not available, \code{var_names} will be assigned 'X1',
-'X2', etc.}
+\code{NULL}, in which case \code{names(coef_vec)} will be used.}
 
 \item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
 categorical variables are properly encoded as factors.}

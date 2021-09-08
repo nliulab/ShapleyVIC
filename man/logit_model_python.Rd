@@ -21,10 +21,3 @@ Returns a callable python model object to be used by
 \description{
 Fit logistic regression model using sklearn python library
 }
-\examples{
-data("df_compas", package = "ShapleyVIC")
-head(df_compas)
-# The following requires python library sklearn, otherwise NULL is returned.
-m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
-                                          y_train = df_compas$y[1:1000])
-}

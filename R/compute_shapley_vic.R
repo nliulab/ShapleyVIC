@@ -26,12 +26,6 @@ replace_coef <- function(model_py, coef_vec) {
 #'   where the estimated coefficients will be identical to those from the
 #'   \code{glm} function.
 #' @importFrom reticulate py_module_available
-#' @examples
-#' data("df_compas", package = "ShapleyVIC")
-#' head(df_compas)
-#' # The following requires python library sklearn, otherwise NULL is returned.
-#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
-#'                                           y_train = df_compas$y[1:1000])
 #' @export
 logit_model_python <- function(x_train, y_train) {
   have_sklearn <- reticulate::py_module_available("sklearn")
@@ -56,9 +50,7 @@ logit_model_python <- function(x_train, y_train) {
 #'   \code{model_py}. Default is \code{NULL}, where the coefficients in
 #'   \code{model_py} will be used.
 #' @param var_names String vector of name of model coefficients. Default is
-#'   \code{NULL}, in which case \code{names(coef_vec)} will be used. If
-#'   \code{coef_vec} is not available, \code{var_names} will be assigned 'X1',
-#'   'X2', etc.
+#'   \code{NULL}, in which case \code{names(coef_vec)} will be used.
 #' @param check_convergence Whether to check convergence in SAGE algorithm (may
 #'   slightly slow done the algorithm). Default is \code{FALSE}.
 #' @return Returns a \code{data.frame} containing model class, model
@@ -92,13 +84,15 @@ compute_sage_value <- function(model_py, coef_vec = NULL, var_names = NULL,
     if (is.null(var_names)) var_names <- names(coef_vec)
   } else {
     coef_vec <- c(model_py$intercept_, as.vector(model_py$coef_))
-    if (is.null(var_names)) var_names <- paste0("X", 1:(length(coef_vec) - 1))
+    if (is.null(var_names)) var_names <- rep("", length(coef_vec))
   }
-  if (length(var_names) == (length(coef_vec) - 1)) {
-    var_names <- c("intercept", var_names)
-  } else if (length(var_names) != length(coef_vec)) {
-    warning(simpleWarning("var_names has wrong dimension. Replaced by ''."))
-    var_names <- NULL
+  if (!is.null(var_names)) {
+    if (length(var_names) == (length(coef_vec) - 1)) {
+      var_names <- c("intercept", var_names)
+    } else if (length(var_names) != length(coef_vec)) {
+      warning(simpleWarning("var_names has wrong dimension. Replaced by ''."))
+      var_names <- NULL
+    }
   }
   x_test_dm <- model_matrix_no_intercept(~ ., data = x_test)
   imputer <- sage$MarginalImputer(model_py, x_test_dm)
