@@ -10,13 +10,54 @@ draw_bars(
   val_lower = NULL,
   val_upper = NULL,
   var_names = NULL,
-  labels = NULL,
-  title = "",
-  subtitle = "",
-  sign_vec = NULL,
-  color_template = NULL
+  title = NULL,
+  subtitle = NULL
 )
+}
+\arguments{
+\item{val}{A numeric vector of model reliance.}
+
+\item{val_sd}{A numeric vector of standard deviations of model reliance (with
+the same length as \code{val}), if available. Alternatively, provide
+\code{val_lower} and \code{val_upper} instead of \code{val_sd} to reflect
+uncertainty in \code{val}.}
+
+\item{val_lower}{A numeric vector of the lower bound of 95\% confidence
+interval of model reliance (with the same length as \code{val}), if
+available.}
+
+\item{val_upper}{A numeric vector of the upper bound of 95\% confidence
+interval of model reliance (with the same length as \code{val}), if
+available.}
+
+\item{var_names}{A factor or string vector of variable names (with the same
+length as \code{val}). If a factor is provided, variables will be plotted
+as ordered in \code{levels(var_names)}, otherwise variables will be ordered
+by \code{val}. If unspecified, variables will be named 'X1', 'X2', etc.}
+
+\item{title}{Title of the bar plot (optional).}
+
+\item{subtitle}{Subtitle of the bar plot (optional).}
+}
+\value{
+Returns a ggplot object for the bar plot.
 }
 \description{
 Draw bar plot for model reliance.
+}
+\examples{
+data("df_compas", package = "ShapleyVIC")
+head(df_compas)
+# The following requires python libraries sage and sklearn, otherwise NULL is
+# returned. Small training and test sets are used to reduce run time.
+m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+                                          y_train = df_compas$y[1:1000])
+if (!is.null(m_optim)) {
+  vals <- ShapleyVIC::compute_sage_value(model_py = m_optim,
+                                         var_names = names(df_compas)[-1],
+                                         x_test = df_compas[1001:1100, -1],
+                                         y_test = df_compas$y[1001:1100])
+  ShapleyVIC::draw_bars(val = vals$sage_value[-1], val_sd = vals$sage_sd[-1],
+                        var_names = vals$var_name[-1])
+}
 }

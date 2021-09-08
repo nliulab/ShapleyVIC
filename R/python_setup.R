@@ -16,11 +16,31 @@ install_sage <- function(method = "auto", conda = "auto") {
 install_sklearn <- function(method = "auto", conda = "auto") {
   reticulate::py_install("sklearn", method = method, conda = conda)
 }
+#' R wrapper for installing shap python library
+#' @inheritParams install_sage
+#' @export
+install_shap <- function(method = "auto", conda = "auto") {
+  reticulate::py_install("shap", method = method, conda = conda)
+}
+#' R wrapper for installing matplotlib python library
+#' @inheritParams install_sage
+#' @export
+install_matplotlib <- function(method = "auto", conda = "auto") {
+  reticulate::py_install("matplotlib", method = method, conda = conda)
+}
 
 sklearn <- NULL
 sage <- NULL
+shap <- NULL
+plt <- NULL
+numpy <- NULL
+pandas <- NULL
 .onLoad <- function(libname, pkgname) {
-  # delay load foo module (will only be loaded when accessed via $)
+  # delay load module (will only be loaded when accessed via $)
   sklearn <<- reticulate::import("sklearn", delay_load = TRUE)
   sage <<- reticulate::import("sage", delay_load = TRUE)
+  shap <<- reticulate::import("shap", delay_load = TRUE)
+  plt <<- reticulate::import("matplotlib.pyplot", delay_load = TRUE)
+  numpy <<- reticulate::import("numpy", delay_load = TRUE)
+  pandas <<- reticulate::import("pandas", delay_load = TRUE)
 }

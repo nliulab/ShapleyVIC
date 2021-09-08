@@ -2,26 +2,26 @@
 % Please edit documentation in R/summarise_visualise.R
 \name{rank_variables}
 \alias{rank_variables}
-\title{Rank variables based on pairwise comparison of SAGE-based model reliance}
+\title{Rank variables based on pairwise comparison of model reliance}
 \usage{
 rank_variables(val, val_sd = NULL, ties.method = "min")
 }
 \arguments{
-\item{val}{A numeric vector of SAGE-based model reliance.}
+\item{val}{A numeric vector of model reliance.}
 
-\item{val_sd}{A numeric vector of standard deviations of SAGE-based model
-reliance of the same length as \code{val}. Supply \code{NULL} if
-unavailable.}
+\item{val_sd}{A numeric vector of standard deviations of model reliance (with
+the same length as \code{val}), if available.}
 
 \item{ties.method}{How to handle tied ranks. Default is \code{"min"}. See
 \code{\link{rank}}.}
 }
 \value{
 Returns an integer vector of ranks of variables in descending order.
-  SAGE-based model reliance (with 95\% CI) was compared between all possible
-  pairs of variables. Variables with model reliance significantly than the
-  other variable in more pairwise comparisons are ranked higher.
+  model reliance (possibly with 95\% confidence interval) was compared
+  between all possible pairs of variables. Variables with model reliance
+  significantly than the other variable in more pairwise comparisons are
+  ranked higher.
 }
 \description{
-Rank variables based on pairwise comparison of SAGE-based model reliance
+Rank variables based on pairwise comparison of model reliance
 }
