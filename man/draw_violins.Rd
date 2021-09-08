@@ -2,30 +2,40 @@
 % Please edit documentation in R/summarise_visualise.R
 \name{draw_violins}
 \alias{draw_violins}
-\title{Draw colored violin plot for model reliance.}
+\title{Draw coloured violin plot for model reliance.}
 \usage{
 draw_violins(
   var_names,
+  var_ordering = NULL,
   val,
   perf_metric,
   smaller_is_better = TRUE,
-  title = "",
-  colored = TRUE,
-  my_width = 0.35,
-  perf_metric_breaks = c(1.01, 1.02, 1.03, 1.04)
+  title = NULL
 )
 }
 \arguments{
-\item{var_names}{Factor of variable names. Must be a factor.}
+\item{var_names}{Factor or string vector of variable names. Variables will be
+plotted in the order specified by \code{levels(var_names)} if a factor is
+provided and \code{var_ordering = NULL}. If \code{var_ordering} is
+available, ordering of variables will be determined by \code{var_ordering}.
+If \code{var_names} is a string vector and \code{var_ordering} is not
+available, variables will be plotted in the order of appearance in
+\code{var_names} (top-down).}
 
-\item{val}{Model reliance.}
+\item{var_ordering}{String vector of variable names to indicate their
+ordering (ton-down) in the plot (optional).}
 
-\item{title}{Title of violin plot. Default is an empty string.}
+\item{val}{Model reliance for each model.}
 
-\item{colored}{Whether the violins should be colored by model loss.}
+\item{perf_metric}{Model performance metrics (e.g., ratio of model loss to
+optimal loss), to determine color.}
 
-\item{loss_ratio}{Ratio of loss to optimal loss, to determine color.}
+\item{smaller_is_better}{Whether smaller value of model performance metrics
+indicates better performance. Default is \code{TRUE} (e.g., when
+\code{perf_metric} is loss ratio).}
+
+\item{title}{Title of violin plot (optional).}
 }
 \description{
-Draw colored violin plot for model reliance.
+Draw coloured violin plot for model reliance.
 }

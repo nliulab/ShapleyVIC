@@ -2,11 +2,10 @@
 
 export(compute_meta_interval)
 export(compute_sage_value)
+export(compute_shap_value)
 export(draw_bars)
 export(draw_models)
 export(draw_violins)
-export(install_sage)
-export(install_sklearn)
 export(logit_model_python)
 export(rank_variables)
 export(summarise_shapley_vic)

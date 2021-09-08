@@ -4,7 +4,7 @@
 \alias{summarise_shapley_vic}
 \title{Summarize ShapleyVIC values}
 \usage{
-summarise_shapley_vic(val, val_sd, var_names)
+summarise_shapley_vic(val, val_sd, var_names, var_vif = NULL)
 }
 \arguments{
 \item{val}{A vector of ShapleyVIC values from all models evaluated.}
@@ -13,12 +13,16 @@ summarise_shapley_vic(val, val_sd, var_names)
 models evaluated. Must be the same length as \code{val}. If not available,
 assign to \code{NULL}.}
 
-\item{var_names}{A vector of variable names corresponding to each ShapleyVIC
-value. Should be the same length as \code{val}. Will be recycled if shorter
-than \code{val}.}
+\item{var_names}{A vector of variable names.}
+
+\item{var_vif}{A vector of variance inflation factors (VIF) for each
+variable. If specified, absolute values of \code{val} will be used for
+variables with VIF>2.}
 }
 \value{
-Returns a \code{data.frame}.
+Returns a \code{data.frame} of variable names, their average
+  ShapleyVIC values, and the lower and upper bounds of 95\% prdiction
+  intervals (\code{NA} if \code{val_sd = NULL}).
 }
 \description{
 Summarize ShapleyVIC values

@@ -4,20 +4,14 @@
 \alias{prep_data_zebra}
 \title{Prepare data for making colored violin plot}
 \usage{
-prep_data_zebra(
-  var_names,
-  val,
-  perf_metric,
-  perf_metric_breaks = c(1.01, 1.02, 1.03, 1.04),
-  my_width = 0.35
-)
+prep_data_zebra(var_names, val, perf_metric, perf_metric_breaks)
 }
 \arguments{
 \item{var_names}{Factor of variable names. Must be a factor.}
 
 \item{val}{Model reliance.}
 
-\item{loss_ratio}{Ratio of loss to optimal loss, to determine color.}
+\item{perf_metric}{Model performance metrics, to determine colour.}
 }
 \description{
 Prepare data for making colored violin plot

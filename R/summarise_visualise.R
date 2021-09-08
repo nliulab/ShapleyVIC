@@ -36,12 +36,15 @@ compute_meta_interval <- function(val, val_sd) {
 #' @param val_sd A vector of standard deviation of ShapleyVIC values from all
 #'   models evaluated. Must be the same length as \code{val}. If not available,
 #'   assign to \code{NULL}.
-#' @param var_names A vector of variable names corresponding to each ShapleyVIC
-#'   value. Should be the same length as \code{val}. Will be recycled if shorter
-#'   than \code{val}.
-#' @return Returns a \code{data.frame}.
+#' @param var_names A vector of variable names.
+#' @param var_vif A vector of variance inflation factors (VIF) for each
+#'   variable. If specified, absolute values of \code{val} will be used for
+#'   variables with VIF>2.
+#' @return Returns a \code{data.frame} of variable names, their average
+#'   ShapleyVIC values, and the lower and upper bounds of 95\% prdiction
+#'   intervals (\code{NA} if \code{val_sd = NULL}).
 #' @export
-summarise_shapley_vic <- function(val, val_sd, var_names) {
+summarise_shapley_vic <- function(val, val_sd, var_names, var_vif = NULL) {
   val <- as.numeric(as.vector(val))
   if (anyNA(val)) stop(simpleError("NA not allowed in val."))
   if (!is.null(val_sd)) {
@@ -55,15 +58,16 @@ summarise_shapley_vic <- function(val, val_sd, var_names) {
   if (!is.null(val_sd)) {
     df_summ <- do.call("rbind", lapply(unique(var_names), function(var) {
       val_i <- val[var_names == var]
+      if (!is.null(var_vif)) val_i <- ifelse(var_vif > 2, abs(val_i), val_i)
       val_sd_i <- val_sd[var_names == var]
       summ_vec <- compute_meta_interval(val = val_i, val_sd = val_sd_i)
       data.frame(Variable = var, val = summ_vec["mean"],
                  val_lower = summ_vec["pred_lower"],
                  val_upper = summ_vec["pred_upper"],
-                 hetero_i2 = sprintf("%.1f%% (%.1f%%, %.1f%%)",
-                                     summ_vec["hetero_i2"] * 100,
-                                     summ_vec["hetero_i2_lower"] * 100,
-                                     summ_vec["hetero_i2_upper"] * 100),
+                 # hetero_i2 = sprintf("%.1f%% (%.1f%%, %.1f%%)",
+                 #                     summ_vec["hetero_i2"] * 100,
+                 #                     summ_vec["hetero_i2_lower"] * 100,
+                 #                     summ_vec["hetero_i2_upper"] * 100),
                  stringsAsFactors = FALSE)
     }))
     df_summ$sign <- 0
@@ -75,39 +79,67 @@ summarise_shapley_vic <- function(val, val_sd, var_names) {
       data.frame(Variable = var, val = mean(val_i),
                  val_lower = NA, # mean(val_i) - 1.96 * sd(val_i),
                  val_upper = NA, # mean(val_i) + 1.96 * sd(val_i),
-                 hetero_i2 = "",
+                 # hetero_i2 = "",
                  stringsAsFactors = FALSE)
     }))
     df_summ$sign <- 0
     df_summ$sign[df_summ$val > 0] <- 1
     df_summ$sign[df_summ$val < 0] <- -1
   }
-  df_summ$Variable_ordered <- factor(
+  df_summ$Variable <- factor(
     df_summ$Variable,
     levels = df_summ$Variable[order(df_summ$val, df_summ$sign)]
   )
   rownames(df_summ) <- NULL
-  df_summ
-}
-#' Set color template for bar plots
-#' @param sign_vec A vector of -1, 0, 1.
-#' @param color_template A vector of 3 colours corresponding to -1, 0 and 1.
-set_color_template <- function(sign_vec, color_template = NULL) {
-  if (is.null(color_template)) {
-    color_template <- c("darkorange", "grey", "steelblue")
-  }
-  color_template[match(sort(unique(sign_vec)), c(-1, 0, 1))]
+  df_summ[, setdiff(names(df_summ), "sign")]
 }
 #' Draw bar plot for model reliance.
+#' @param val A numeric vector of model reliance.
+#' @param val_sd A numeric vector of standard deviations of model reliance (with
+#'   the same length as \code{val}), if available. Alternatively, provide
+#'   \code{val_lower} and \code{val_upper} instead of \code{val_sd} to reflect
+#'   uncertainty in \code{val}.
+#' @param val_lower A numeric vector of the lower bound of 95\% confidence
+#'   interval of model reliance (with the same length as \code{val}), if
+#'   available.
+#' @param val_upper A numeric vector of the upper bound of 95\% confidence
+#'   interval of model reliance (with the same length as \code{val}), if
+#'   available.
+#' @param var_names A factor or string vector of variable names (with the same
+#'   length as \code{val}). If a factor is provided, variables will be plotted
+#'   as ordered in \code{levels(var_names)}, otherwise variables will be ordered
+#'   by \code{val}. If unspecified, variables will be named 'X1', 'X2', etc.
+#' @param title Title of the bar plot (optional).
+#' @param subtitle Subtitle of the bar plot (optional).
+#' @return Returns a ggplot object for the bar plot.
+#' @examples
+#' data("df_compas", package = "ShapleyVIC")
+#' head(df_compas)
+#' # The following requires python libraries sage and sklearn, otherwise NULL is
+#' # returned. Small training and test sets are used to reduce run time.
+#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+#'                                           y_train = df_compas$y[1:1000])
+#' if (!is.null(m_optim)) {
+#'   vals <- ShapleyVIC::compute_sage_value(model_py = m_optim,
+#'                                          var_names = names(df_compas)[-1],
+#'                                          x_test = df_compas[1001:1100, -1],
+#'                                          y_test = df_compas$y[1001:1100])
+#'   ShapleyVIC::draw_bars(val = vals$sage_value[-1], val_sd = vals$sage_sd[-1],
+#'                         var_names = vals$var_name[-1])
+#' }
 #' @export
 #' @import ggplot2
 draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
-                      var_names = NULL, labels = NULL, title = "", subtitle = "",
-                      sign_vec = NULL, color_template = NULL) {
+                      var_names = NULL, title = NULL, subtitle = NULL) {
   if (is.null(var_names)) {
-    var_names <- rep("", length(val))
+    var_names <- paste0("X", seq_along(val))
   }
-  dt <- data.frame(val = val, variables = var_names)
+  if ("factor" %in% class(var_names)) {
+    var_names_ordered <- var_names
+  } else {
+    var_names_ordered <- factor(var_names, levels = var_names[order(val)])
+  }
+  dt <- data.frame(val = val, variables = var_names_ordered)
   if (is.null(val_lower) | is.null(val_upper)) {
     if (is.null(val_sd)) {
       draw_errors <- FALSE
@@ -121,43 +153,36 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
     dt$val_lower <- val_lower
     dt$val_upper <- val_upper
   }
+  if (draw_errors) {
+    # dt$val_lower should have been supplied or computed
+    # Putting 1 (i.e., +ve sign) as reference level, so that steelblue will be
+    # used when all are +ve
+    dt$sign_vec <- factor(as.numeric(dt$val_lower > 0), levels = c(1, 0))
+  } else {
+    dt$sign_vec <- factor(rep(1, nrow(dt)), levels = c(1, 0))
+  }
   common_theme <- theme(panel.grid.major.y = element_line(colour = "grey95"),
                         panel.grid.minor = element_blank(),
                         panel.background = element_blank(),
                         axis.line.x = element_line(colour = "black"),
                         axis.ticks.y = element_blank())
   x_lab <- "Average model reliance (>0 suggests importance)\nwith 95% predicion interval"
-  if (!is.null(sign_vec)) {
-    dt$sign_vec_factor <- factor(sign_vec)
-    color_vec <- set_color_template(sign_vec = sign_vec,
-                                    color_template = color_template)
-    p <- ggplot(data = dt,
-                mapping = aes_string(x = "variables", y = "val",
-                                     fill = "sign_vec_factor")) +
-      geom_hline(yintercept = 0, color = "grey") +
-      geom_bar(stat = "identity") +
-      common_theme +
-      coord_flip() +
-      labs(x = "", y = x_lab, title = title, subtitle = subtitle) +
-      theme(legend.position = "none") +
-      scale_fill_manual(values = color_vec)
-  } else {
-    p <- ggplot(data = dt,
-                mapping = aes_string(x = "variables", y = "val")) +
-      geom_hline(yintercept = 0, color = "grey") +
-      geom_bar(stat = "identity") +
-      common_theme +
-      coord_flip() +
-      labs(x = "", y = x_lab, title = title, subtitle = subtitle) +
-      theme(legend.position = "none")
-  }
-  if (!is.null(labels)) {
-    dt$labels = labels
-    p <- p +
-      geom_text(data = dt,
-                aes_string(x = "variables", y = 0, label = "labels"),
-                nudge_x = 0.2, hjust = 0)
-  }
+  p <- ggplot(data = dt,
+              mapping = aes_string(x = "variables", y = "val", fill = "sign_vec")) +
+    geom_hline(yintercept = 0, color = "grey") +
+    geom_bar(stat = "identity") +
+    common_theme +
+    coord_flip() +
+    labs(x = "", y = x_lab, title = title, subtitle = subtitle) +
+    theme(legend.position = "none") +
+    scale_fill_manual(values = c("steelblue", "grey"))
+  # if (!is.null(labels)) {
+  #   dt$labels = labels
+  #   p <- p +
+  #     geom_text(data = dt,
+  #               aes_string(x = "variables", y = 0, label = "labels"),
+  #               nudge_x = 0.2, hjust = 0)
+  # }
   if (draw_errors) {
     p <- p +
       geom_errorbar(aes_string(ymin = "val_lower", ymax = "val_upper"),
@@ -165,17 +190,17 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
   }
   p
 }
-#' Rank variables based on pairwise comparison of SAGE-based model reliance
-#' @param val A numeric vector of SAGE-based model reliance.
-#' @param val_sd A numeric vector of standard deviations of SAGE-based model
-#'   reliance of the same length as \code{val}. Supply \code{NULL} if
-#'   unavailable.
+#' Rank variables based on pairwise comparison of model reliance
+#' @param val A numeric vector of model reliance.
+#' @param val_sd A numeric vector of standard deviations of model reliance (with
+#'   the same length as \code{val}), if available.
 #' @param ties.method How to handle tied ranks. Default is \code{"min"}. See
 #'   \code{\link{rank}}.
 #' @return Returns an integer vector of ranks of variables in descending order.
-#'   SAGE-based model reliance (with 95\% CI) was compared between all possible
-#'   pairs of variables. Variables with model reliance significantly than the
-#'   other variable in more pairwise comparisons are ranked higher.
+#'   model reliance (possibly with 95\% confidence interval) was compared
+#'   between all possible pairs of variables. Variables with model reliance
+#'   significantly than the other variable in more pairwise comparisons are
+#'   ranked higher.
 #' @export
 rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
   if (is.null(val_sd)) {
@@ -203,13 +228,12 @@ rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
 #' Prepare data for making colored violin plot
 #' @param var_names Factor of variable names. Must be a factor.
 #' @param val Model reliance.
-#' @param loss_ratio Ratio of loss to optimal loss, to determine color.
+#' @param perf_metric Model performance metrics, to determine colour.
 #' @import tidyverse
 #' @importFrom rlang .data
 #' @importFrom purrr map_df
-prep_data_zebra <- function(var_names, val, perf_metric,
-                            perf_metric_breaks = c(1.01, 1.02, 1.03, 1.04),
-                            my_width = 0.35) {
+prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks) {
+  my_width <- 0.35
   df <- data.frame(x = var_names, y = val, perf_metric = perf_metric)
   p <- df %>% ggplot(aes_string(x = "x", y = "y")) + geom_violin(trim = TRUE)
   # This is all you need for the fill:
@@ -274,25 +298,56 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
                                  barheight = grid::unit(0.5, "lines")))
   ggpubr::get_legend(p_legend)
 }
-#' Draw colored violin plot for model reliance.
-#' @param var_names Factor of variable names. Must be a factor.
-#' @param val Model reliance.
-#' @param loss_ratio Ratio of loss to optimal loss, to determine color.
-#' @param title Title of violin plot. Default is an empty string.
-#' @param colored Whether the violins should be colored by model loss.
+#' Draw coloured violin plot for model reliance.
+#' @param var_names Factor or string vector of variable names. Variables will be
+#'   plotted in the order specified by \code{levels(var_names)} if a factor is
+#'   provided and \code{var_ordering = NULL}. If \code{var_ordering} is
+#'   available, ordering of variables will be determined by \code{var_ordering}.
+#'   If \code{var_names} is a string vector and \code{var_ordering} is not
+#'   available, variables will be plotted in the order of appearance in
+#'   \code{var_names} (top-down).
+#' @param var_ordering String vector of variable names to indicate their
+#'   ordering (ton-down) in the plot (optional).
+#' @param val Model reliance for each model.
+#' @param perf_metric Model performance metrics (e.g., ratio of model loss to
+#'   optimal loss), to determine color.
+#' @param smaller_is_better Whether smaller value of model performance metrics
+#'   indicates better performance. Default is \code{TRUE} (e.g., when
+#'   \code{perf_metric} is loss ratio).
+#' @param title Title of violin plot (optional).
 #' @import ggplot2
 #' @import RColorBrewer
 #' @import ggpubr
 #' @export
-draw_violins <- function(var_names, val, perf_metric, smaller_is_better = TRUE,
-                         title = "", colored = TRUE,
-                         my_width = 0.35,
-                         perf_metric_breaks = c(1.01, 1.02, 1.03, 1.04)) {
+draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
+                         smaller_is_better = TRUE, title = NULL) {
+  if (!is.null(var_ordering)) {
+    var_ordering <- as.character(unique(var_ordering))
+    if (length(var_ordering) != length(unique(var_names))) {
+      stop(simpleError("'var_ordering' should be all unique variable names in 'var_names'."))
+    }
+    var_names_ordered <- factor(var_names, levels = var_ordering)
+  } else {
+    if ("factor" %in% class(var_names)) {
+      var_names_ordered <- var_names
+    } else {
+      var_names_ordered <- factor(var_names, levels = rev(unique(var_names)))
+    }
+  }
+  # Cut perf_metric into 5 categories to determine color
+  perf_metric_breaks <- seq(from = min(perf_metric), to = max(perf_metric),
+                            length.out = 6)[2:5]
+  col_vec <- RColorBrewer::brewer.pal(n = 6, name = "Blues")[-1]
+  if (smaller_is_better) col_vec <- rev(col_vec)
+  # Create a legend for fill, which looks nicer than default legend for color:
+  color_legend <- make_violin_legend(perf_metric_breaks = perf_metric_breaks,
+                                     col_vec = col_vec)
   # First prepare the list of two data.frames for the shape and color strips
   # of violins:
-  df_violin_list <- prep_data_zebra(var_names = var_names,
-                                    val = val, perf_metric = perf_metric)
-  x_lvls <- levels(var_names)
+  df_violin_list <- prep_data_zebra(var_names = var_names_ordered,
+                                    val = val, perf_metric = perf_metric,
+                                    perf_metric_breaks = perf_metric_breaks)
+  x_lvls <- levels(var_names_ordered)
   # The shape of violins are always plotted:
   p <- ggplot() +
     geom_hline(yintercept = 0, color = "grey") +
@@ -307,24 +362,14 @@ draw_violins <- function(var_names, val, perf_metric, smaller_is_better = TRUE,
           axis.line.x = element_line(colour = "black"),
           axis.ticks.y = element_blank()) +
     labs(x = "", y = "Model reliance (>0 suggests importance)", title = title)
-  # If colored, also add color strips:
-  if (colored) {
-    n_cats <- length(perf_metric_breaks) + 1
-    col_vec <- RColorBrewer::brewer.pal(n = n_cats + 1, name = "Blues")[-1]
-    if (all(perf_metric_breaks >= 1)) col_vec <- rev(col_vec)
-    # First create a legend for fill, which looks nicer than default legend for
-    # color:
-    color_legend <- make_violin_legend(perf_metric_breaks = perf_metric_breaks,
-                                       col_vec = col_vec)
-    # Then make the colored violin plots:
-    p <- p +
-      geom_segment(data = df_violin_list$df_zebra_color,
-                   aes_string(x = "xnew", xend = "xend", y = "y", yend = "y",
-                              color = "y_color_cat")) +
-      scale_color_manual(values = col_vec) +
-      theme(legend.position = "none")
-    # Finally, combine plot with legend:
-    p <- ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")
-  }
+  # Next, add color to violin plots:
+  p <- p +
+    geom_segment(data = df_violin_list$df_zebra_color,
+                 aes_string(x = "xnew", xend = "xend", y = "y", yend = "y",
+                            color = "y_color_cat")) +
+    scale_color_manual(values = col_vec) +
+    theme(legend.position = "none")
+  # Finally, combine plot with legend:
+  p <- ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")
   p
 }
