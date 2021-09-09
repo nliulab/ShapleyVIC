@@ -30,7 +30,13 @@ replace_coef <- function(model_py, coef_vec) {
 logit_model_python <- function(x_train, y_train) {
   have_sklearn <- reticulate::py_module_available("sklearn")
   if (!have_sklearn) {
-    warning(simpleWarning("Please install sklearn python library."))
+    warning(simpleWarning("Need to install sklearn python library."))
+    print("installing now")
+    reticulate::py_install("sklearn")
+    if (reticulate::py_module_available("sklearn"))
+    print("python library sklearn is now installed")
+    else
+    print("sklearn installation failed")
     return(NULL)
   }
   model_r <- glm(y_train ~ ., data = cbind(y_train = y_train, x_train),
@@ -75,8 +81,14 @@ logit_model_python <- function(x_train, y_train) {
 compute_sage_value <- function(model_py, coef_vec = NULL, var_names = NULL,
                                x_test, y_test, check_convergence = FALSE) {
   have_sage <- reticulate::py_module_available("sage")
-  if (!have_sage) {
-    warning(simpleWarning("Please install sage python library."))
+  if (!sage) {
+    warning(simpleWarning("Need to install sage python library."))
+    print("installing now")
+    reticulate::py_install("sage")
+    if (reticulate::py_module_available("sage"))
+      print("python library sage is now installed")
+    else
+      print("sage installation failed")
     return(NULL)
   }
   if (!is.null(coef_vec)) {
