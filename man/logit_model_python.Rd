@@ -4,13 +4,17 @@
 \alias{logit_model_python}
 \title{Fit logistic regression model using sklearn python library}
 \usage{
-logit_model_python(x_train, y_train)
+logit_model_python(x_train, y_train, save_to_file = NULL)
 }
 \arguments{
 \item{x_train}{A \code{data.frame} of predictors from the training set. Make
 sure categorical variables are properly encoded as factors.}
 
-\item{y_train}{A numeric vector of outcome, with events coded as 1.}
+\item{y_train}{A numeric vector of outcome from the training set, with events
+coded as 1.}
+
+\item{save_to_file}{Where to save the fitted python model. Use \code{.sav}
+file extension. Default is \code{NULL}, i.e., not saved to external file.}
 }
 \value{
 Returns a callable python model object to be used by

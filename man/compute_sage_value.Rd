@@ -6,10 +6,10 @@
 \usage{
 compute_sage_value(
   model_py,
-  coef_vec = NULL,
-  var_names = NULL,
   x_test,
   y_test,
+  coef_vec = NULL,
+  var_names = NULL,
   check_convergence = FALSE
 )
 }
@@ -17,25 +17,27 @@ compute_sage_value(
 \item{model_py}{A Python callable model object that has a
 \code{predict_proba} function.}
 
-\item{coef_vec}{Named numeric vector of model coefficients (including the
+\item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
+categorical variables are properly encoded as factors.}
+
+\item{y_test}{A numeric vector of outcome from the test set, with events
+coded as 1.}
+
+\item{coef_vec}{Numeric vector of model coefficients (including the
 intercept term as the first element), to replace the coefficients in
 \code{model_py}. Default is \code{NULL}, where the coefficients in
 \code{model_py} will be used.}
 
-\item{var_names}{String vector of name of model coefficients. Default is
-\code{NULL}, in which case \code{names(coef_vec)} will be used.}
-
-\item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
-categorical variables are properly encoded as factors.}
+\item{var_names}{String vector of variable names (not the names of regression
+coefficients, if categorical variables are involved). If unspecified,
+column names of \code{x_test} will be used.}
 
 \item{check_convergence}{Whether to check convergence in SAGE algorithm (may
 slightly slow done the algorithm). Default is \code{FALSE}.}
 }
 \value{
-Returns a \code{data.frame} containing model class, model
-  coefficients and their names, SAGE values and their standard deviations.
-  Note that SAGE value and standard deviation is not defined for the
-  intercept and therefore will be \code{NA}.
+Returns a \code{data.frame} containing variable names, SAGE values
+  and their standard deviations.
 }
 \description{
 Compute SAGE values for a model

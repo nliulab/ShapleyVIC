@@ -229,7 +229,9 @@ rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
 #' @param var_names Factor of variable names. Must be a factor.
 #' @param val Model reliance.
 #' @param perf_metric Model performance metrics, to determine colour.
-#' @import tidyverse
+#' @import dplyr
+#' @import tidyr
+#' @import ggplot2
 #' @importFrom rlang .data
 #' @importFrom purrr map_df
 prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks) {
@@ -291,7 +293,7 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
     # col_vec is for discrete version. it is in reverse direction of continuous version
     scale_fill_gradient2(low = col_vec[n_brk + 1], high = col_vec[1],
                          mid = col_vec[n_mid], midpoint = median(y_color),
-                         labels = c("Lower", rep("", n_brk), "Higher")) +
+                         labels = c("", "Lower", rep("", n_brk - 2), "Higher", "")) +
     theme(legend.position = "bottom") +
     guides(fill = guide_colorbar(title = "Model performance", title.vjust = 1,
                                  ticks = FALSE, barwidth = grid::unit(0.5, "npc"),
@@ -370,6 +372,5 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
     scale_color_manual(values = col_vec) +
     theme(legend.position = "none")
   # Finally, combine plot with legend:
-  p <- ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")
-  p
+  ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")
 }

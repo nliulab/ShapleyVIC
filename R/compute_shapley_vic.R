@@ -13,6 +13,10 @@ model_matrix_no_intercept <- function(formula, data) {
 }
 #' Replace estimated coefficients in a Python object with prespeficied values.
 replace_coef <- function(model_py, coef_vec) {
+  coef_vec <- as.numeric(coef_vec)
+  if (anyNA(coef_vec)) {
+    stop(simpleError("coef_vec should not contain non-numeric values or NA."))
+  }
   model_py$intercept_ <- coef_vec[1]
   model_py$coef_ <- matrix(coef_vec[-1], nrow = 1)
   model_py
@@ -20,14 +24,17 @@ replace_coef <- function(model_py, coef_vec) {
 #' Fit logistic regression model using sklearn python library
 #' @param x_train A \code{data.frame} of predictors from the training set. Make
 #'   sure categorical variables are properly encoded as factors.
-#' @param y_train A numeric vector of outcome, with events coded as 1.
+#' @param y_train A numeric vector of outcome from the training set, with events
+#'   coded as 1.
+#' @param save_to_file Where to save the fitted python model. Use \code{.sav}
+#'   file extension. Default is \code{NULL}, i.e., not saved to external file.
 #' @return Returns a callable python model object to be used by
 #'   \code{\link{compute_shap_value}} and \code{\link{compute_sage_value}},
 #'   where the estimated coefficients will be identical to those from the
 #'   \code{glm} function.
 #' @importFrom reticulate py_module_available
 #' @export
-logit_model_python <- function(x_train, y_train) {
+logit_model_python <- function(x_train, y_train, save_to_file = NULL) {
   have_sklearn <- reticulate::py_module_available("sklearn")
   if (!have_sklearn) {
     warning(simpleWarning("Please install sklearn python library."))
@@ -41,22 +48,26 @@ logit_model_python <- function(x_train, y_train) {
     x_train_dm, y_train
   )
   coef_vec <- coef(model_r)
-  replace_coef(model_py = model_py, coef_vec = coef_vec)
+  model_py <- replace_coef(model_py = model_py, coef_vec = coef_vec)
+  if (!is.null(save_to_file)) {
+    message(sprintf("Saving python object to file '%s' ... ", save_to_file))
+    reticulate::py_save_object(model_py, filename = save_to_file)
+    message("saved.\n")
+  }
+  model_py
 }
 #' Compute SAGE values for a model
 #' @inheritParams compute_shap_value
-#' @param coef_vec Named numeric vector of model coefficients (including the
+#' @param y_test A numeric vector of outcome from the test set, with events
+#'   coded as 1.
+#' @param coef_vec Numeric vector of model coefficients (including the
 #'   intercept term as the first element), to replace the coefficients in
 #'   \code{model_py}. Default is \code{NULL}, where the coefficients in
 #'   \code{model_py} will be used.
-#' @param var_names String vector of name of model coefficients. Default is
-#'   \code{NULL}, in which case \code{names(coef_vec)} will be used.
 #' @param check_convergence Whether to check convergence in SAGE algorithm (may
 #'   slightly slow done the algorithm). Default is \code{FALSE}.
-#' @return Returns a \code{data.frame} containing model class, model
-#'   coefficients and their names, SAGE values and their standard deviations.
-#'   Note that SAGE value and standard deviation is not defined for the
-#'   intercept and therefore will be \code{NA}.
+#' @return Returns a \code{data.frame} containing variable names, SAGE values
+#'   and their standard deviations.
 #' @examples
 #' data("df_compas", package = "ShapleyVIC")
 #' head(df_compas)
@@ -70,10 +81,16 @@ logit_model_python <- function(x_train, y_train) {
 #'                                  x_test = df_compas[1001:1100, -1],
 #'                                  y_test = df_compas$y[1001:1100])
 #' }
-#' @importFrom reticulate py_module_available
+#' @importFrom reticulate py_module_available py_eval
 #' @export
-compute_sage_value <- function(model_py, coef_vec = NULL, var_names = NULL,
-                               x_test, y_test, check_convergence = FALSE) {
+compute_sage_value <- function(model_py, x_test, y_test,
+                               coef_vec = NULL, var_names = NULL,
+                               check_convergence = FALSE) {
+  if (is.null(dim(x_test)) || ncol(x_test) <= 1) {
+    stop(simpleError("x_test should be a data.frame with at least 2 columns."))
+  }
+  loss_type <- "cross entropy"
+  # loss_type <- match.arg(loss, choices = c("cross entropy", "mse"))
   have_sage <- reticulate::py_module_available("sage")
   if (!have_sage) {
     warning(simpleWarning("Please install sage python library."))
@@ -81,38 +98,129 @@ compute_sage_value <- function(model_py, coef_vec = NULL, var_names = NULL,
   }
   if (!is.null(coef_vec)) {
     model_py <- replace_coef(model_py = model_py, coef_vec = coef_vec)
-    if (is.null(var_names)) var_names <- names(coef_vec)
   } else {
     coef_vec <- c(model_py$intercept_, as.vector(model_py$coef_))
-    if (is.null(var_names)) var_names <- rep("", length(coef_vec))
   }
   if (!is.null(var_names)) {
-    if (length(var_names) == (length(coef_vec) - 1)) {
-      var_names <- c("intercept", var_names)
-    } else if (length(var_names) != length(coef_vec)) {
-      warning(simpleWarning("var_names has wrong dimension. Replaced by ''."))
-      var_names <- NULL
+    if (length(var_names) != length(coef_vec)) {
+      warning(simpleWarning("var_names has wrong dimension. Replaced by 'names(x_test)'."))
+      var_names <- names(x_test)
     }
+  } else {
+    var_names <- names(x_test)
   }
   x_test_dm <- model_matrix_no_intercept(~ ., data = x_test)
-  imputer <- sage$MarginalImputer(model_py, x_test_dm)
-  estimator <- sage$PermutationEstimator(imputer, 'cross entropy')
+  # Create a python array to indicate which columns in the design matrix
+  # correspond to the same categorical variable.
+  x_clusters <- find_clusters(data = x_test)
+  x_groups <- paste0(
+    "[",
+    paste(lapply(x_clusters, function(cols) paste0("[", toString(cols - 1), "]")),
+          collapse = ","), # python counts from 0
+    "]"
+  )
+  x_groups_py <- reticulate::py_eval(x_groups, convert = FALSE)
+  # Columns corresponding to the same categorical variable are handled together:
+  imputer <- sage$GroupedMarginalImputer(model_py, x_test_dm, groups = x_groups_py)
+  estimator <- sage$PermutationEstimator(imputer, loss_type)
   sage_values <- estimator(x_test_dm, matrix(y_test, ncol = 1),
                            verbose = check_convergence)
-  data.frame(coef = coef_vec, var_name = var_names,
-             sage_value = c(NA, sage_values$values),
-             sage_sd = c(NA, sage_values$std))
+  data.frame(var_name = var_names, sage_value = sage_values$values,
+             sage_sd = sage_values$std)
 }
-#' Compute logistic loss
-#' @param coef_vec Regression coefficients of the logistic regression. The first
-#'   element should be the intercept term.
-#' @param x A \code{data.frame} of predictors. Make sure categorical variables
-#'   are properly encoded as factors.
-#' @param y A numeric vector of outcome, with events coded as 1.
-#' @return Returns the logistic loss.
-compute_loss_bin <- function(coef_vec, x, y){
-  y <- as.numeric(as.character(y))
-  y <- ifelse(y == 1, 1, -1)
-  design_mat <- model.matrix(~ ., data = x)
-  sum(log(1 + exp(-y * (design_mat %*% coef_vec))))
+#' Compute ShapleyVIC values for nearly optimal models
+#' @inheritParams
+#' @param model_py A Python callable model object that has a
+#'   \code{predict_proba} function, or the path to a file that stores the model.
+#' @param model_colinear A model train from training set to detect colinearity
+#'   of predictors (e.g., a logistic regression). This is relevant to any model
+#'   that assumes a linear function for predictors.
+#' @param coef_mat A numeric matrix or \code{data.frame} of coefficients of
+#'   nearly optimal models, where each row corresponds to a model and each
+#'   column corresponds to a variable (or a category of a categorical variable).
+#' @param perf_metric Performance metric of each model in \code{coef_mat}.
+#' @param n_cores Number of cores to use for parallel computing.
+#' @importFrom car vif
+#' @import parallel
+#' @import doParallel
+#' @import foreach
+#' @export
+compute_shapley_vic <- function(model_py, model_colinear = NULL,
+                                coef_mat, perf_metric,
+                                x_test, y_test, var_names = NULL, n_cores) {
+  # The model_py python object cannot be passed to individual parallel clusters,
+  # therefore it is loaded from external file in every %dopar%
+  if (is.character(model_py)) {# model_py was saved to file
+    if (!file.exists(model_py)) {
+      stop(simpleError("model_py file does not exist."))
+    }
+    is_temp <- FALSE
+    model_py_file <- model_py
+  } else {# create a temporary file to save model_py and remove on exit
+    is_temp <- TRUE
+    model_py_file <- tempfile(pattern = "model_py", fileext = "sav")
+    reticulate::py_save_object(model_py, filename = model_py_file)
+  }
+  if (!is.null(model_colinear)) {
+    m_vif <- car::vif(model_colinear)
+    if (is.null(dim(m_vif))) {# when no categorical variable, m_vif is a vector
+      use_abs <- m_vif >= 2
+    } else {# in case of categorical variable, use first column
+      use_abs <- m_vif[, 1] >= 2
+    }
+  } else {
+    use_abs <- NULL
+  }
+  if (is.null(var_names)) var_names <- names(x_test)
+  # Run ShapleyVIC using foreach
+  n_cores_total <- parallel::detectCores()
+  if (n_cores >= n_cores_total - 1) {
+    warning(simpleWarning(sprintf(
+      "In total %d cores detected and %d cores requested. n_cores reset to %d (maximum feasible number).",
+      n_cores_total, n_cores, n_cores_total - 1
+    )))
+    n_cores <- n_cores_total - 1
+  }
+  if (Sys.info()["sysname"] == "Windows") {
+    par_type <- "PSOCK" # available for all systems, but slower than fork
+  } else {
+    par_type <- "FORK"
+  }
+  my_cluster <- parallel::makeCluster(n_cores, type = par_type)
+  doParallel::registerDoParallel(cl = my_cluster)
+  # foreach::getDoParRegistered()
+  # foreach::getDoParWorkers()
+  rows <- 1:nrow(coef_mat)
+  df_sage <- foreach(
+    i = rows, .combine = 'rbind', .packages = c("reticulate")
+  ) %dopar% {
+    coef_vec <- as.numeric(coef_mat[i, ])
+    if (!is.null(use_abs)) coef_vec <- ifelse(use_abs, abs(coef_vec), coef_vec)
+    model_py = reticulate::py_load_object(filename = model_py_file)
+    # model_py <- logit_model_python(x_train = x_train, y_train = y_train)
+    df_sage_i <- compute_sage_value(model_py = model_py, coef_vec = coef_vec,
+                                    var_names = var_names,
+                                    x_test = x_test, y_test = y_test)
+    cbind(model_id = i, df_sage_i, perf_metric = perf_metric[i])
+  }
+  rownames(df_sage) <- NULL
+  on.exit({
+    try({
+      message("Attempting to stop cluster ...\n")
+      cluster_stopped <- FALSE
+      while (!cluster_stopped) {
+        doParallel::stopImplicitCluster()
+        parallel::stopCluster(cl = my_cluster)
+        cluster_stopped <- !foreach::getDoParRegistered() &
+          foreach::getDoParWorkers() == 1
+      }
+      message("Cluster stopped.\n")
+      if (is_temp) {
+        message("Removing temporary model_py save file ...\n")
+        fr <- file.remove(model_py_file)
+        if (fr) message("Temporary file removed.\n")
+      }
+    })
+  })
+  df_sage
 }

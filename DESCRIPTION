@@ -1,7 +1,7 @@
 Package: ShapleyVIC
 Type: Package
 Title: Shapley Variable Importance Clouds (ShapleyVIC) for Interpretable Machine Learning 
-Version: 0.1.1
+Version: 0.1.2
 Author: Yilin Ning
 Maintainer: Yilin Ning <ningyilinnyl@gmail.com>
 Description: Assess variable importance from nearly optimal models for 

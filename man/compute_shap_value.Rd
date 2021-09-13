@@ -4,21 +4,27 @@
 \alias{compute_shap_value}
 \title{Compute SHAP values for a model}
 \usage{
-compute_shap_value(model_py, var_names = NULL, x_test)
+compute_shap_value(model_py, x_test, var_names = NULL)
 }
 \arguments{
 \item{model_py}{A Python callable model object that has a
 \code{predict_proba} function.}
 
-\item{var_names}{String vector of name of model coefficients. If unspecified,
-'X1', 'X2', etc will be used.}
-
 \item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
 categorical variables are properly encoded as factors.}
+
+\item{var_names}{String vector of variable names (not the names of regression
+coefficients, if categorical variables are involved). If unspecified,
+column names of \code{x_test} will be used.}
 }
 \value{
 Returns a \code{data.frame} of SHAP values, where each column
-  corresponds to a variable and each row corresponds to an observation.
+  corresponds to a variable and each row corresponds to an observation. SHAP
+  value of a categorical variable is the sum of SHAP values for all
+  categories. Plots a bar plot of mean absolute SHAP values and a beeswarm
+  plot of SHAP values (note that these plots do not work with RMarkdown yet).
+  Categorical variables are converted to integer values (i.e., 1 for first
+  category, 2 for second category, etc) when ploting in the beeswarm plot.
 }
 \description{
 Compute SHAP values for a model
