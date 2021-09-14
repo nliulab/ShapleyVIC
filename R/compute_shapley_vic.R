@@ -98,7 +98,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   loss_type <- "cross entropy"
   # loss_type <- match.arg(loss, choices = c("cross entropy", "mse"))
   have_sage <- reticulate::py_module_available("sage")
-  if (!sage) {
+  if (!have_sage) {
     warning(simpleWarning("Need to install sage python library."))
     print("installing now")
     reticulate::py_install("sage")
@@ -207,13 +207,19 @@ compute_shapley_vic <- function(model_py, model_colinear = NULL,
     i = rows, .combine = 'rbind', .packages = c("reticulate")
   ) %dopar% {
     coef_vec <- as.numeric(coef_mat[i, ])
-    if (!is.null(use_abs)) coef_vec <- ifelse(use_abs, abs(coef_vec), coef_vec)
     model_py = reticulate::py_load_object(filename = model_py_file)
     # model_py <- logit_model_python(x_train = x_train, y_train = y_train)
     df_sage_i <- compute_sage_value(model_py = model_py, coef_vec = coef_vec,
                                     var_names = var_names,
                                     x_test = x_test, y_test = y_test)
-    cbind(model_id = i, df_sage_i, perf_metric = perf_metric[i])
+    output_i <- cbind(model_id = i, df_sage_i, perf_metric = perf_metric[i])
+    if (!is.null(use_abs)) {
+      output_i$sage_value_new <- ifelse(use_abs, abs(output_i$sage_value),
+                                        output_i$sage_value)
+    } else {
+      output_i$sage_value_new <- output_i$sage_value
+    }
+    output_i
   }
   rownames(df_sage) <- NULL
   on.exit({
