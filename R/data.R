@@ -49,7 +49,7 @@
 #' @format A \code{data.frame} with 2100 rows and 5 variables:
 #' \describe{
 #'   \item{model_id}{Model ID, ranging from 1 to 350.}
-#'   \item{var_name}{Variable name as in \code{\link{df_compas}.}
+#'   \item{var_name}{Variable name as in \code{\link{df_compas}}.}
 #'   \item{sage_value}{SAGE-based variable importance of the variable to the model.}
 #'   \item{sage_sd}{Standard error of \code{sage_value}.}
 #'   \item{perf_metric}{Performance of each model, measured as the ratio of

@@ -229,12 +229,16 @@ rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
 #' @param var_names Factor of variable names. Must be a factor.
 #' @param val Model reliance.
 #' @param perf_metric Model performance metrics, to determine colour.
+#' @param impute_color When a model reliance interval is not observed with any
+#'   models, whether to impute color of this region based on neighboring
+#'   regions.
 #' @import dplyr
 #' @import tidyr
 #' @import ggplot2
 #' @importFrom rlang .data
 #' @importFrom purrr map_df
-prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks) {
+prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks,
+                            impute_color) {
   my_width <- 0.35
   df <- data.frame(x = var_names, y = val, perf_metric = perf_metric)
   p <- df %>% ggplot(aes_string(x = "x", y = "y")) + geom_violin(trim = TRUE)
@@ -260,7 +264,9 @@ prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks) {
       }
     }
     vl_fill_i$y_color <- y_color
-    vl_fill_i <- fill(data = vl_fill_i, .data$y_color, .direction = "updown")
+    if (impute_color) {
+      vl_fill_i <- fill(data = vl_fill_i, .data$y_color, .direction = "updown")
+    }
     vl_fill_i
   })) %>%
     mutate(y_color_cat = cut(.data$y_color, right = FALSE,
@@ -280,6 +286,8 @@ prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks) {
 #' @import ggplot2
 #' @import ggpubr
 make_violin_legend <- function(perf_metric_breaks, col_vec) {
+  # col_vec is for discrete version. it is in reverse direction of continuous version
+  col_vec <- rev(col_vec)
   n_brk <- length(perf_metric_breaks)
   brk_diff <- diff(perf_metric_breaks)
   y_color <- c(perf_metric_breaks[1] - brk_diff[1], perf_metric_breaks,
@@ -290,13 +298,14 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
                                        y_color = y_color),
                      aes_string(x = "x", y = "y", fill = "y_color")) +
     geom_tile() +
-    # col_vec is for discrete version. it is in reverse direction of continuous version
-    scale_fill_gradient2(low = col_vec[n_brk + 1], high = col_vec[1],
-                         mid = col_vec[n_mid], midpoint = median(y_color),
-                         labels = c("", "Lower", rep("", n_brk - 2), "Higher", "")) +
+    scale_fill_gradient2(low = col_vec[1], high = col_vec[n_brk + 1],
+                         mid = col_vec[n_mid], midpoint = median(y_color)) +
+                         # labels = c("", "Lower", rep("", n_brk - 2), "Higher", "")) +
     theme(legend.position = "bottom") +
-    guides(fill = guide_colorbar(title = "Model performance", title.vjust = 1,
-                                 ticks = FALSE, barwidth = grid::unit(0.5, "npc"),
+    guides(fill = guide_colorbar(title = "Model performance (Lower to higher)",
+                                 label.hjust = 0, title.position = "top",
+                                 ticks = FALSE, label = FALSE,
+                                 barwidth = grid::unit(0.5, "npc"),
                                  barheight = grid::unit(0.5, "lines")))
   ggpubr::get_legend(p_legend)
 }
@@ -317,12 +326,17 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
 #'   indicates better performance. Default is \code{TRUE} (e.g., when
 #'   \code{perf_metric} is loss ratio).
 #' @param title Title of violin plot (optional).
+#' @param impute_color When a model reliance interval is not observed with any
+#'   models, whether to impute color of this region based on neighboring
+#'   regions. Default is to impute, otherwise the corresponding regions will be
+#'   colored white.
 #' @import ggplot2
 #' @import RColorBrewer
 #' @import ggpubr
 #' @export
 draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
-                         smaller_is_better = TRUE, title = NULL) {
+                         smaller_is_better = TRUE, title = NULL,
+                         impute_color = TRUE) {
   if (!is.null(var_ordering)) {
     var_ordering <- as.character(unique(var_ordering))
     if (length(var_ordering) != length(unique(var_names))) {
@@ -336,11 +350,12 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
       var_names_ordered <- factor(var_names, levels = rev(unique(var_names)))
     }
   }
+  if (!smaller_is_better) perf_metric <- -perf_metric
   # Cut perf_metric into 5 categories to determine color
   perf_metric_breaks <- seq(from = min(perf_metric), to = max(perf_metric),
                             length.out = 6)[2:5]
   col_vec <- RColorBrewer::brewer.pal(n = 6, name = "Blues")[-1]
-  if (smaller_is_better) col_vec <- rev(col_vec)
+  col_vec <- rev(col_vec)
   # Create a legend for fill, which looks nicer than default legend for color:
   color_legend <- make_violin_legend(perf_metric_breaks = perf_metric_breaks,
                                      col_vec = col_vec)
@@ -348,7 +363,8 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
   # of violins:
   df_violin_list <- prep_data_zebra(var_names = var_names_ordered,
                                     val = val, perf_metric = perf_metric,
-                                    perf_metric_breaks = perf_metric_breaks)
+                                    perf_metric_breaks = perf_metric_breaks,
+                                    impute_color = impute_color)
   x_lvls <- levels(var_names_ordered)
   # The shape of violins are always plotted:
   p <- ggplot() +
@@ -369,7 +385,7 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
     geom_segment(data = df_violin_list$df_zebra_color,
                  aes_string(x = "xnew", xend = "xend", y = "y", yend = "y",
                             color = "y_color_cat")) +
-    scale_color_manual(values = col_vec) +
+    scale_color_manual(values = col_vec, na.value = "white") +
     theme(legend.position = "none")
   # Finally, combine plot with legend:
   ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")

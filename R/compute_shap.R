@@ -53,8 +53,10 @@ find_clusters <- function(data) {
 #'   value of a categorical variable is the sum of SHAP values for all
 #'   categories. Plots a bar plot of mean absolute SHAP values and a beeswarm
 #'   plot of SHAP values (note that these plots do not work with RMarkdown yet).
-#'   Categorical variables are converted to integer values (i.e., 1 for first
-#'   category, 2 for second category, etc) when ploting in the beeswarm plot.
+#'   Users can save the two plots to an external PDF file by using the
+#'   \code{pdf()} function (see Example section). Categorical variables are
+#'   converted to integer values (i.e., 1 for first category, 2 for second
+#'   category, etc) when plotting in the beeswarm plot.
 #' @examples
 #' data("df_compas", package = "ShapleyVIC")
 #' head(df_compas)
@@ -64,15 +66,19 @@ find_clusters <- function(data) {
 #' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
 #'                                           y_train = df_compas$y[1:1000])
 #' if (!is.null(m_optim)) {
+#'   # pdf("shap_figures.pdf") # Add this to save the two SHAP plots to PDF
 #'   shap_vals <- ShapleyVIC::compute_shap_value(model_py = m_optim,
 # '                                              var_names = names(df_compas)[-1],
 #'                                               x_test = df_compas[1001:1100, -1])
+#'   # dev.off()
 #'   dim(shap_vals)
 #'   head(shap_vals)
 #' }
 #' @importFrom reticulate py_module_available
 #' @export
-compute_shap_value <- function(model_py, x_test, var_names = NULL) {
+compute_shap_value <- function(model_py, x_test, var_names = NULL,
+                               plot_fontsize_title = NULL,
+                               plot_fontsize_label = NULL) {
   if (is.null(dim(x_test)) || ncol(x_test) <= 1) {
     stop(simpleError("x_test should be a data.frame with at least 2 columns."))
   }
@@ -93,7 +99,7 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL) {
   }
   # Variable names, not names of coefficients:
   if (is.null(var_names)) var_names <- names(x_test)
-  x_test_dm <- ShapleyVIC:::model_matrix_no_intercept(~ ., data = x_test)
+  x_test_dm <- model_matrix_no_intercept(~ ., data = x_test)
   explainer = shap$explainers$Permutation(model_py$predict_proba, x_test_dm)
   shap_values = explainer(x_test_dm)
   # shap_values are computed for both y=1 and y=0, need to remove y=0. Also need
@@ -108,16 +114,16 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL) {
       if (length(cols) > 1) apply(mat, 1, sum) else mat
     }))
   }
-  message("Use 'Preious Plot' and 'Next Plot' buttons in RStudio 'Plots' panel to navigate between beeswarm plot and bar plot of SHAP values.\n")
+  message("If plots are not saved to external PDF file, use 'Preious Plot' and 'Next Plot' buttons in RStudio 'Plots' panel to navigate between the beeswarm plot and bar plot of SHAP values.\n")
   # Convert categorical variables to integers to plot (otherwise cannot plot):
   x_test_num <- do.call("cbind", lapply(x_test, as.numeric))
   f = plt$figure()
-  plt$subplots_adjust(left = 0.3, right = 0.7)
+  plt$subplots_adjust(left = 0.3, right = 0.7, top = 0.8, bottom = 0.1)
   shap$summary_plot(values_mat, x_test_num, plot_type = "bar",
                     feature_names = var_names,
                     max_display = as.integer(length(var_names)))
   f = plt$figure()
-  plt$subplots_adjust(left = 0.3, right = 0.7)
+  plt$subplots_adjust(left = 0.3, right = 0.7, top = 0.8, bottom = 0.1)
   shap$summary_plot(values_mat, x_test_num,
                     feature_names = var_names,
                     max_display = as.integer(length(var_names)))

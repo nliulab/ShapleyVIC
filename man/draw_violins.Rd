@@ -10,7 +10,8 @@ draw_violins(
   val,
   perf_metric,
   smaller_is_better = TRUE,
-  title = NULL
+  title = NULL,
+  impute_color = TRUE
 )
 }
 \arguments{
@@ -35,6 +36,11 @@ indicates better performance. Default is \code{TRUE} (e.g., when
 \code{perf_metric} is loss ratio).}
 
 \item{title}{Title of violin plot (optional).}
+
+\item{impute_color}{When a model reliance interval is not observed with any
+models, whether to impute color of this region based on neighboring
+regions. Default is to impute, otherwise the corresponding regions will be
+colored white.}
 }
 \description{
 Draw coloured violin plot for model reliance.

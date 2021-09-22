@@ -12,7 +12,8 @@ compute_shapley_vic(
   x_test,
   y_test,
   var_names = NULL,
-  n_cores
+  n_cores,
+  output_folder = NULL
 )
 }
 \arguments{
@@ -28,6 +29,13 @@ nearly optimal models, where each row corresponds to a model and each
 column corresponds to a variable (or a category of a categorical variable).}
 
 \item{perf_metric}{Performance metric of each model in \code{coef_mat}.}
+
+\item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
+categorical variables are properly encoded as factors.}
+
+\item{var_names}{String vector of variable names (not the names of regression
+coefficients, if categorical variables are involved). If unspecified,
+column names of \code{x_test} will be used.}
 
 \item{n_cores}{Number of cores to use for parallel computing.}
 }

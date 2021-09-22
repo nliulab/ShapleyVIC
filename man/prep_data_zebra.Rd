@@ -4,7 +4,7 @@
 \alias{prep_data_zebra}
 \title{Prepare data for making colored violin plot}
 \usage{
-prep_data_zebra(var_names, val, perf_metric, perf_metric_breaks)
+prep_data_zebra(var_names, val, perf_metric, perf_metric_breaks, impute_color)
 }
 \arguments{
 \item{var_names}{Factor of variable names. Must be a factor.}
@@ -12,6 +12,10 @@ prep_data_zebra(var_names, val, perf_metric, perf_metric_breaks)
 \item{val}{Model reliance.}
 
 \item{perf_metric}{Model performance metrics, to determine colour.}
+
+\item{impute_color}{When a model reliance interval is not observed with any
+models, whether to impute color of this region based on neighboring
+regions.}
 }
 \description{
 Prepare data for making colored violin plot

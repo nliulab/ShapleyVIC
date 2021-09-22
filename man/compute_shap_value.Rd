@@ -4,7 +4,13 @@
 \alias{compute_shap_value}
 \title{Compute SHAP values for a model}
 \usage{
-compute_shap_value(model_py, x_test, var_names = NULL)
+compute_shap_value(
+  model_py,
+  x_test,
+  var_names = NULL,
+  plot_fontsize_title = NULL,
+  plot_fontsize_label = NULL
+)
 }
 \arguments{
 \item{model_py}{A Python callable model object that has a
@@ -23,8 +29,10 @@ Returns a \code{data.frame} of SHAP values, where each column
   value of a categorical variable is the sum of SHAP values for all
   categories. Plots a bar plot of mean absolute SHAP values and a beeswarm
   plot of SHAP values (note that these plots do not work with RMarkdown yet).
-  Categorical variables are converted to integer values (i.e., 1 for first
-  category, 2 for second category, etc) when ploting in the beeswarm plot.
+  Users can save the two plots to an external PDF file by using the
+  \code{pdf()} function (see Example section). Categorical variables are
+  converted to integer values (i.e., 1 for first category, 2 for second
+  category, etc) when plotting in the beeswarm plot.
 }
 \description{
 Compute SHAP values for a model
@@ -38,8 +46,10 @@ head(df_compas)
 m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
                                           y_train = df_compas$y[1:1000])
 if (!is.null(m_optim)) {
+  # pdf("shap_figures.pdf") # Add this to save the two SHAP plots to PDF
   shap_vals <- ShapleyVIC::compute_shap_value(model_py = m_optim,
                                               x_test = df_compas[1001:1100, -1])
+  # dev.off()
   dim(shap_vals)
   head(shap_vals)
 }

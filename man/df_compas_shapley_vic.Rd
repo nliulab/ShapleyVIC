@@ -5,7 +5,16 @@
 \alias{df_compas_shapley_vic}
 \title{ShapleyVIC values from the 350 nearly optimal models for COMPAS data}
 \format{
-
+A \code{data.frame} with 2100 rows and 5 variables:
+\describe{
+  \item{model_id}{Model ID, ranging from 1 to 350.}
+  \item{var_name}{Variable name as in \code{\link{df_compas}}.}
+  \item{sage_value}{SAGE-based variable importance of the variable to the model.}
+  \item{sage_sd}{Standard error of \code{sage_value}.}
+  \item{perf_metric}{Performance of each model, measured as the ratio of
+  logistic loss to the minimum loss (i.e., logistic loss of model trained
+  from training set).}
+}
 }
 \usage{
 df_compas_shapley_vic

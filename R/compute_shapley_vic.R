@@ -98,7 +98,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   loss_type <- "cross entropy"
   # loss_type <- match.arg(loss, choices = c("cross entropy", "mse"))
   have_sage <- reticulate::py_module_available("sage")
-  if (!sage) {
+  if (!have_sage) {
     warning(simpleWarning("Need to install sage python library."))
     print("installing now")
     reticulate::py_install("sage")
@@ -141,7 +141,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
              sage_sd = sage_values$std)
 }
 #' Compute ShapleyVIC values for nearly optimal models
-#' @inheritParams
+#' @inheritParams compute_shap_value
 #' @param model_py A Python callable model object that has a
 #'   \code{predict_proba} function, or the path to a file that stores the model.
 #' @param model_colinear A model train from training set to detect colinearity
@@ -159,7 +159,8 @@ compute_sage_value <- function(model_py, x_test, y_test,
 #' @export
 compute_shapley_vic <- function(model_py, model_colinear = NULL,
                                 coef_mat, perf_metric,
-                                x_test, y_test, var_names = NULL, n_cores) {
+                                x_test, y_test, var_names = NULL, n_cores,
+                                output_folder = NULL) {
   # The model_py python object cannot be passed to individual parallel clusters,
   # therefore it is loaded from external file in every %dopar%
   if (is.character(model_py)) {# model_py was saved to file
@@ -184,6 +185,13 @@ compute_shapley_vic <- function(model_py, model_colinear = NULL,
     use_abs <- NULL
   }
   if (is.null(var_names)) var_names <- names(x_test)
+  if (!is.null(output_folder)) {
+    message(paste0(
+      "ShapleyVIC values of each model will be saved to a CSV file in folder '",
+      output_folder, "'.\n"
+    ))
+    if (!dir.exists(output_folder)) dir.create(output_folder)
+  }
   # Run ShapleyVIC using foreach
   n_cores_total <- parallel::detectCores()
   if (n_cores >= n_cores_total - 1) {
@@ -203,17 +211,32 @@ compute_shapley_vic <- function(model_py, model_colinear = NULL,
   # foreach::getDoParRegistered()
   # foreach::getDoParWorkers()
   rows <- 1:nrow(coef_mat)
+  coef_mat_list <- split(as.matrix(coef_mat), rows)
   df_sage <- foreach(
-    i = rows, .combine = 'rbind', .packages = c("reticulate")
+    i = rows, coef_vec = coef_mat_list, perf_metric_i = perf_metric,
+    .combine = 'rbind', .packages = c("reticulate")
   ) %dopar% {
-    coef_vec <- as.numeric(coef_mat[i, ])
-    if (!is.null(use_abs)) coef_vec <- ifelse(use_abs, abs(coef_vec), coef_vec)
+    print(i)
+    # cat("i =", i, "----\n")
+    # coef_vec <- as.numeric(coef_mat[i, ])
+    coef_vec <- as.numeric(coef_vec)
     model_py = reticulate::py_load_object(filename = model_py_file)
-    # model_py <- logit_model_python(x_train = x_train, y_train = y_train)
     df_sage_i <- compute_sage_value(model_py = model_py, coef_vec = coef_vec,
                                     var_names = var_names,
                                     x_test = x_test, y_test = y_test)
-    cbind(model_id = i, df_sage_i, perf_metric = perf_metric[i])
+    output_i <- cbind(model_id = i, df_sage_i, perf_metric = perf_metric_i)
+    if (!is.null(use_abs)) {
+      output_i$sage_value_new <- ifelse(use_abs, abs(output_i$sage_value),
+                                        output_i$sage_value)
+    } else {
+      output_i$sage_value_new <- output_i$sage_value
+    }
+    if (!is.null(output_folder)) {
+      write.csv(output_i,
+                file = file.path(output_folder, paste0("shapley_vic_", i, ".csv")),
+                row.names = FALSE)
+    }
+    output_i
   }
   rownames(df_sage) <- NULL
   on.exit({
