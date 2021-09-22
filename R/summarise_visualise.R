@@ -55,10 +55,13 @@ summarise_shapley_vic <- function(val, val_sd, var_names, var_vif = NULL) {
     }
   }
   var_names <- as.character(as.vector(var_names))
+  if (!is.null(var_vif)) {
+    var_abs <- names(var_vif)[var_vif > 2]
+    val <- ifelse(var_names %in% var_abs, abs(val), val)
+  }
   if (!is.null(val_sd)) {
     df_summ <- do.call("rbind", lapply(unique(var_names), function(var) {
       val_i <- val[var_names == var]
-      if (!is.null(var_vif)) val_i <- ifelse(var_vif > 2, abs(val_i), val_i)
       val_sd_i <- val_sd[var_names == var]
       summ_vec <- compute_meta_interval(val = val_i, val_sd = val_sd_i)
       data.frame(Variable = var, val = summ_vec["mean"],
@@ -190,19 +193,14 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
   }
   p
 }
-#' Rank variables based on pairwise comparison of model reliance
+#' Rank variables based on pairwise comparison of model reliance for one model
 #' @param val A numeric vector of model reliance.
 #' @param val_sd A numeric vector of standard deviations of model reliance (with
 #'   the same length as \code{val}), if available.
 #' @param ties.method How to handle tied ranks. Default is \code{"min"}. See
 #'   \code{\link{rank}}.
 #' @return Returns an integer vector of ranks of variables in descending order.
-#'   model reliance (possibly with 95\% confidence interval) was compared
-#'   between all possible pairs of variables. Variables with model reliance
-#'   significantly than the other variable in more pairwise comparisons are
-#'   ranked higher.
-#' @export
-rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
+rank_vars <- function(val, val_sd = NULL, ties.method = "min") {
   if (is.null(val_sd)) {
     rank(-val, ties.method = ties.method)
   } else {
@@ -225,7 +223,47 @@ rank_variables <- function(val, val_sd = NULL, ties.method = "min") {
     rank(-count_v1_gt_v2, ties.method = ties.method)
   }
 }
-#' Prepare data for making colored violin plot
+#' Rank variables based on pairwise comparison of model reliance
+#' @param model_id A vector of model ID.
+#' @param val A numeric vector of model reliance from each model.
+#' @param val_sd A numeric vector of standard deviations of model reliance (with
+#'   the same length as \code{val}), if available.
+#' @param var_names A factor or string vector of variable names (with the same
+#'   length as \code{val}). If unspecified, variables will be named 'X1', 'X2', etc.
+#' @param summarise If \code{TRUE}, ranks will be summarised across models by
+#'   taking the numeric average. Default is \code{FALSE}, where ranks for
+#'   individual models will be returned.
+#' @param ties.method How to handle tied ranks. Default is \code{"min"}. See
+#'   \code{\link{rank}}.
+#' @return Returns an integer vector of ranks of variables for each model (in
+#'   descending order). Model reliance (possibly with 95\% confidence interval)
+#'   is compared between all possible pairs of variables. Variables with model
+#'   reliance significantly than the other variable in more pairwise comparisons
+#'   are ranked higher.
+#' @import dplyr
+#' @import rlang
+#' @export
+rank_variables <- function(model_id, val, val_sd = NULL, var_names = NULL,
+                           summarise = FALSE, ties.method = "min") {
+  if (is.null(var_names)) {
+    var_names <- paste0("X", seq_along(val))
+  }
+  val_ranks <- do.call("rbind", lapply(sort(unique(model_id)), function(id) {
+    data.frame(model_id = id,
+               Variable = var_names[model_id == id],
+               rank = rank_vars(val = val[model_id == id],
+                                val_sd = val_sd[model_id == id],
+                                ties.method = ties.method))
+  }))
+  rownames(val_ranks) <- NULL
+  if (summarise) {
+    val_ranks %>% group_by(.data$Variable) %>%
+      summarise(mean_rank = mean(rank)) %>% as.data.frame()
+  } else {
+    val_ranks
+  }
+}
+#' Prepare data for making coloured violin plot
 #' @param var_names Factor of variable names. Must be a factor.
 #' @param val Model reliance.
 #' @param perf_metric Model performance metrics, to determine colour.

@@ -38,12 +38,12 @@ logit_model_python <- function(x_train, y_train, save_to_file = NULL) {
   have_sklearn <- reticulate::py_module_available("sklearn")
   if (!have_sklearn) {
     warning(simpleWarning("Need to install sklearn python library."))
-    print("installing now")
-    reticulate::py_install("sklearn")
-    if (reticulate::py_module_available("sklearn"))
-    print("python library sklearn is now installed")
-    else
-    print("sklearn installation failed")
+    # print("installing now")
+    # reticulate::py_install("sklearn")
+    # if (reticulate::py_module_available("sklearn"))
+    # print("python library sklearn is now installed")
+    # else
+    # print("sklearn installation failed")
     return(NULL)
   }
   model_r <- glm(y_train ~ ., data = cbind(y_train = y_train, x_train),
@@ -100,12 +100,12 @@ compute_sage_value <- function(model_py, x_test, y_test,
   have_sage <- reticulate::py_module_available("sage")
   if (!have_sage) {
     warning(simpleWarning("Need to install sage python library."))
-    print("installing now")
-    reticulate::py_install("sage")
-    if (reticulate::py_module_available("sage"))
-      print("python library sage is now installed")
-    else
-      print("sage installation failed")
+    # print("installing now")
+    # reticulate::py_install("sage")
+    # if (reticulate::py_module_available("sage"))
+    #   print("python library sage is now installed")
+    # else
+    #   print("sage installation failed")
     return(NULL)
   }
   if (!is.null(coef_vec)) {
@@ -141,26 +141,24 @@ compute_sage_value <- function(model_py, x_test, y_test,
              sage_sd = sage_values$std)
 }
 #' Compute ShapleyVIC values for nearly optimal models
-#' @inheritParams compute_shap_value
+#' @inheritParams compute_sage_value
 #' @param model_py A Python callable model object that has a
 #'   \code{predict_proba} function, or the path to a file that stores the model.
-#' @param model_colinear A model train from training set to detect colinearity
-#'   of predictors (e.g., a logistic regression). This is relevant to any model
-#'   that assumes a linear function for predictors.
 #' @param coef_mat A numeric matrix or \code{data.frame} of coefficients of
 #'   nearly optimal models, where each row corresponds to a model and each
 #'   column corresponds to a variable (or a category of a categorical variable).
 #' @param perf_metric Performance metric of each model in \code{coef_mat}.
+#' @param output_folder Folder to save ShapleyVIC values from individual models
+#'   (optional).
 #' @param n_cores Number of cores to use for parallel computing.
 #' @importFrom car vif
 #' @import parallel
 #' @import doParallel
 #' @import foreach
 #' @export
-compute_shapley_vic <- function(model_py, model_colinear = NULL,
-                                coef_mat, perf_metric,
-                                x_test, y_test, var_names = NULL, n_cores,
-                                output_folder = NULL) {
+compute_shapley_vic <- function(model_py, coef_mat, perf_metric,
+                                x_test, y_test, var_names = NULL,
+                                output_folder = NULL, n_cores) {
   # The model_py python object cannot be passed to individual parallel clusters,
   # therefore it is loaded from external file in every %dopar%
   if (is.character(model_py)) {# model_py was saved to file
@@ -174,24 +172,10 @@ compute_shapley_vic <- function(model_py, model_colinear = NULL,
     model_py_file <- tempfile(pattern = "model_py", fileext = "sav")
     reticulate::py_save_object(model_py, filename = model_py_file)
   }
-  if (!is.null(model_colinear)) {
-    m_vif <- car::vif(model_colinear)
-    if (is.null(dim(m_vif))) {# when no categorical variable, m_vif is a vector
-      use_abs <- m_vif >= 2
-    } else {# in case of categorical variable, use first column
-      use_abs <- m_vif[, 1] >= 2
-    }
-  } else {
-    use_abs <- NULL
+  if (!is.null(output_folder)) {
+    if (!file.exists(output_folder)) dir.create(output_folder)
   }
   if (is.null(var_names)) var_names <- names(x_test)
-  if (!is.null(output_folder)) {
-    message(paste0(
-      "ShapleyVIC values of each model will be saved to a CSV file in folder '",
-      output_folder, "'.\n"
-    ))
-    if (!dir.exists(output_folder)) dir.create(output_folder)
-  }
   # Run ShapleyVIC using foreach
   n_cores_total <- parallel::detectCores()
   if (n_cores >= n_cores_total - 1) {
@@ -211,45 +195,36 @@ compute_shapley_vic <- function(model_py, model_colinear = NULL,
   # foreach::getDoParRegistered()
   # foreach::getDoParWorkers()
   rows <- 1:nrow(coef_mat)
-  coef_mat_list <- split(as.matrix(coef_mat), rows)
   df_sage <- foreach(
-    i = rows, coef_vec = coef_mat_list, perf_metric_i = perf_metric,
-    .combine = 'rbind', .packages = c("reticulate")
+    i = rows, .combine = 'rbind', .packages = c("reticulate")
   ) %dopar% {
-    print(i)
-    # cat("i =", i, "----\n")
-    # coef_vec <- as.numeric(coef_mat[i, ])
-    coef_vec <- as.numeric(coef_vec)
+    coef_vec <- as.numeric(coef_mat[i, ])
     model_py = reticulate::py_load_object(filename = model_py_file)
+    # model_py <- logit_model_python(x_train = x_train, y_train = y_train)
     df_sage_i <- compute_sage_value(model_py = model_py, coef_vec = coef_vec,
                                     var_names = var_names,
                                     x_test = x_test, y_test = y_test)
-    output_i <- cbind(model_id = i, df_sage_i, perf_metric = perf_metric_i)
-    if (!is.null(use_abs)) {
-      output_i$sage_value_new <- ifelse(use_abs, abs(output_i$sage_value),
-                                        output_i$sage_value)
-    } else {
-      output_i$sage_value_new <- output_i$sage_value
-    }
+    df_sage_i <- cbind(model_id = i, df_sage_i, perf_metric = perf_metric[i])
     if (!is.null(output_folder)) {
-      write.csv(output_i,
-                file = file.path(output_folder, paste0("shapley_vic_", i, ".csv")),
-                row.names = FALSE)
+      write.csv(
+        df_sage_i,
+        file = file.path(output_folder, paste0("shapley_vic_", i, ".csv")),
+        row.names = FALSE
+      )
     }
-    output_i
   }
   rownames(df_sage) <- NULL
   on.exit({
     try({
-      message("Attempting to stop cluster ...\n")
-      cluster_stopped <- FALSE
-      while (!cluster_stopped) {
-        doParallel::stopImplicitCluster()
-        parallel::stopCluster(cl = my_cluster)
-        cluster_stopped <- !foreach::getDoParRegistered() &
-          foreach::getDoParWorkers() == 1
-      }
-      message("Cluster stopped.\n")
+      # message("Attempting to stop cluster ...\n")
+      # cluster_stopped <- FALSE
+      # while (!cluster_stopped) {
+      doParallel::stopImplicitCluster()
+      parallel::stopCluster(cl = my_cluster)
+      #   cluster_stopped <- !foreach::getDoParRegistered() &
+      #     foreach::getDoParWorkers() == 1
+      # }
+      # message("Cluster stopped.\n")
       if (is_temp) {
         message("Removing temporary model_py save file ...\n")
         fr <- file.remove(model_py_file)

@@ -31,6 +31,7 @@ compute_loss_bin <- function(coef_vec, x, y){
 draw_models <- function(coef_optim, coef_optim_var, x, y,
                         M = 800, u1 = 0.5, u2 = 20, epsilon = 0.05,
                         n_final = NULL) {
+  coef_optim <- as.numeric(coef_optim)
   loss_optim <- compute_loss_bin(coef_vec = coef_optim, x = x, y = y)
   k_vec <- runif(n = M, min = u1, max = u2)
   coef_mat <- do.call("rbind", lapply(1:M, function(i) {

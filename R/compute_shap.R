@@ -48,6 +48,14 @@ find_clusters <- function(data) {
 #' @param var_names String vector of variable names (not the names of regression
 #'   coefficients, if categorical variables are involved). If unspecified,
 #'   column names of \code{x_test} will be used.
+#' @param left Numeric values between 0 and 1 controlling the boundaries of bar
+#'   and beeswarm plots. The complete plotting region has a width and height of
+#'   1, and the bottom left corner is (0,0). Default parameters \code{(left =
+#'   0.3, right = 0.7, top = 0.8, bottom = 0.1)} means margins of 0.3 at left
+#'   and right sides, and margins of 0.1 on the top and bottom.
+#' @param right See \code{left}.
+#' @param top See \code{left}.
+#' @param bottom See \code{left}.
 #' @return Returns a \code{data.frame} of SHAP values, where each column
 #'   corresponds to a variable and each row corresponds to an observation. SHAP
 #'   value of a categorical variable is the sum of SHAP values for all
@@ -60,7 +68,7 @@ find_clusters <- function(data) {
 #' @examples
 #' data("df_compas", package = "ShapleyVIC")
 #' head(df_compas)
-#' # The following requires python libraries shap, sklearn, numpy and pandas,
+#' # The following requires python libraries shap, sklearn and numpy,
 #' # otherwise NULL is returned. Small training and test sets are used to reduce
 #' # run time.
 #' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
@@ -77,8 +85,7 @@ find_clusters <- function(data) {
 #' @importFrom reticulate py_module_available
 #' @export
 compute_shap_value <- function(model_py, x_test, var_names = NULL,
-                               plot_fontsize_title = NULL,
-                               plot_fontsize_label = NULL) {
+                               left = 0.3, right = 0.7, top = 0.8, bottom = 0.1) {
   if (is.null(dim(x_test)) || ncol(x_test) <= 1) {
     stop(simpleError("x_test should be a data.frame with at least 2 columns."))
   }
@@ -118,12 +125,12 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL,
   # Convert categorical variables to integers to plot (otherwise cannot plot):
   x_test_num <- do.call("cbind", lapply(x_test, as.numeric))
   f = plt$figure()
-  plt$subplots_adjust(left = 0.3, right = 0.7, top = 0.8, bottom = 0.1)
+  plt$subplots_adjust(left = left, right = right, top = top, bottom = bottom)
   shap$summary_plot(values_mat, x_test_num, plot_type = "bar",
                     feature_names = var_names,
                     max_display = as.integer(length(var_names)))
   f = plt$figure()
-  plt$subplots_adjust(left = 0.3, right = 0.7, top = 0.8, bottom = 0.1)
+  plt$subplots_adjust(left = left, right = right, top = top, bottom = bottom)
   shap$summary_plot(values_mat, x_test_num,
                     feature_names = var_names,
                     max_display = as.integer(length(var_names)))

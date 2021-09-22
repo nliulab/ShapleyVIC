@@ -6,23 +6,18 @@
 \usage{
 compute_shapley_vic(
   model_py,
-  model_colinear = NULL,
   coef_mat,
   perf_metric,
   x_test,
   y_test,
   var_names = NULL,
-  n_cores,
-  output_folder = NULL
+  output_folder = NULL,
+  n_cores
 )
 }
 \arguments{
 \item{model_py}{A Python callable model object that has a
 \code{predict_proba} function, or the path to a file that stores the model.}
-
-\item{model_colinear}{A model train from training set to detect colinearity
-of predictors (e.g., a logistic regression). This is relevant to any model
-that assumes a linear function for predictors.}
 
 \item{coef_mat}{A numeric matrix or \code{data.frame} of coefficients of
 nearly optimal models, where each row corresponds to a model and each
@@ -33,9 +28,15 @@ column corresponds to a variable (or a category of a categorical variable).}
 \item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
 categorical variables are properly encoded as factors.}
 
+\item{y_test}{A numeric vector of outcome from the test set, with events
+coded as 1.}
+
 \item{var_names}{String vector of variable names (not the names of regression
 coefficients, if categorical variables are involved). If unspecified,
 column names of \code{x_test} will be used.}
+
+\item{output_folder}{Folder to save ShapleyVIC values from individual models
+(optional).}
 
 \item{n_cores}{Number of cores to use for parallel computing.}
 }

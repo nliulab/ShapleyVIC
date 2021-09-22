@@ -1,7 +1,7 @@
 Package: ShapleyVIC
 Type: Package
 Title: Shapley Variable Importance Clouds (ShapleyVIC) for Interpretable Machine Learning 
-Version: 0.1.2
+Version: 0.2.0
 Author: Yilin Ning
 Maintainer: Yilin Ning <ningyilinnyl@gmail.com>
 Description: Assess variable importance from nearly optimal models for 
@@ -16,9 +16,13 @@ Imports:
     ggpubr,
     gridExtra,
     meta,
-    tidyverse,
+    dplyr,
+    tidyr,
     reticulate,
     rlang,
-    purrr
+    purrr,
+    parallel,
+    doParallel,
+    foreach
 Depends: 
     R (>= 2.10)

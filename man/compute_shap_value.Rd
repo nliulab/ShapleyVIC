@@ -8,8 +8,10 @@ compute_shap_value(
   model_py,
   x_test,
   var_names = NULL,
-  plot_fontsize_title = NULL,
-  plot_fontsize_label = NULL
+  left = 0.3,
+  right = 0.7,
+  top = 0.8,
+  bottom = 0.1
 )
 }
 \arguments{
@@ -22,6 +24,18 @@ categorical variables are properly encoded as factors.}
 \item{var_names}{String vector of variable names (not the names of regression
 coefficients, if categorical variables are involved). If unspecified,
 column names of \code{x_test} will be used.}
+
+\item{left}{Numeric values between 0 and 1 controlling the boundaries of bar
+and beeswarm plots. The complete plotting region has a width and height of
+1, and the bottom left corner is (0,0). Default parameters \code{(left =
+0.3, right = 0.7, top = 0.8, bottom = 0.1)} means margins of 0.3 at left
+and right sides, and margins of 0.1 on the top and bottom.}
+
+\item{right}{See \code{left}.}
+
+\item{top}{See \code{left}.}
+
+\item{bottom}{See \code{left}.}
 }
 \value{
 Returns a \code{data.frame} of SHAP values, where each column
@@ -40,7 +54,7 @@ Compute SHAP values for a model
 \examples{
 data("df_compas", package = "ShapleyVIC")
 head(df_compas)
-# The following requires python libraries shap, sklearn, numpy and pandas,
+# The following requires python libraries shap, sklearn and numpy,
 # otherwise NULL is returned. Small training and test sets are used to reduce
 # run time.
 m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
