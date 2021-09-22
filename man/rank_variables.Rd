@@ -4,23 +4,39 @@
 \alias{rank_variables}
 \title{Rank variables based on pairwise comparison of model reliance}
 \usage{
-rank_variables(val, val_sd = NULL, ties.method = "min")
+rank_variables(
+  model_id,
+  val,
+  val_sd = NULL,
+  var_names = NULL,
+  summarise = FALSE,
+  ties.method = "min"
+)
 }
 \arguments{
-\item{val}{A numeric vector of model reliance.}
+\item{model_id}{A vector of model ID.}
+
+\item{val}{A numeric vector of model reliance from each model.}
 
 \item{val_sd}{A numeric vector of standard deviations of model reliance (with
 the same length as \code{val}), if available.}
+
+\item{var_names}{A factor or string vector of variable names (with the same
+length as \code{val}). If unspecified, variables will be named 'X1', 'X2', etc.}
+
+\item{summarise}{If \code{TRUE}, ranks will be summarised across models by
+taking the numeric average. Default is \code{FALSE}, where ranks for
+individual models will be returned.}
 
 \item{ties.method}{How to handle tied ranks. Default is \code{"min"}. See
 \code{\link{rank}}.}
 }
 \value{
-Returns an integer vector of ranks of variables in descending order.
-  model reliance (possibly with 95\% confidence interval) was compared
-  between all possible pairs of variables. Variables with model reliance
-  significantly than the other variable in more pairwise comparisons are
-  ranked higher.
+Returns an integer vector of ranks of variables for each model (in
+  descending order). Model reliance (possibly with 95\% confidence interval)
+  is compared between all possible pairs of variables. Variables with model
+  reliance significantly than the other variable in more pairwise comparisons
+  are ranked higher.
 }
 \description{
 Rank variables based on pairwise comparison of model reliance

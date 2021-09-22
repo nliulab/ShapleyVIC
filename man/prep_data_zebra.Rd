@@ -2,7 +2,7 @@
 % Please edit documentation in R/summarise_visualise.R
 \name{prep_data_zebra}
 \alias{prep_data_zebra}
-\title{Prepare data for making colored violin plot}
+\title{Prepare data for making coloured violin plot}
 \usage{
 prep_data_zebra(var_names, val, perf_metric, perf_metric_breaks, impute_color)
 }
@@ -18,5 +18,5 @@ models, whether to impute color of this region based on neighboring
 regions.}
 }
 \description{
-Prepare data for making colored violin plot
+Prepare data for making coloured violin plot
 }
