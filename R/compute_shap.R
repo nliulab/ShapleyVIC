@@ -40,6 +40,21 @@ find_clusters <- function(data) {
     v
   })
 }
+#' Check predictor names for test set
+#' @param var_names A vector of variable names
+#' @param x_test A \code{data.frame} of predictors from the test set.
+check_var_names <- function(var_names, x_test) {
+  if (!is.null(var_names)) {
+    var_names <- as.character(var_names)
+    if (length(var_names) != ncol(x_test)) {
+      warning(simpleWarning("var_names has wrong dimension. Replaced by 'names(x_test)'."))
+      var_names <- names(x_test)
+    }
+  } else {
+    var_names <- names(x_test)
+  }
+  var_names
+}
 #' Compute SHAP values for a model
 #' @param model_py A Python callable model object that has a
 #'   \code{predict_proba} function.
@@ -48,6 +63,7 @@ find_clusters <- function(data) {
 #' @param var_names String vector of variable names (not the names of regression
 #'   coefficients, if categorical variables are involved). If unspecified,
 #'   column names of \code{x_test} will be used.
+#' @param plot Whether to plot SHAP values (default is \code{TRUE}).
 #' @param left Numeric values between 0 and 1 controlling the boundaries of bar
 #'   and beeswarm plots. The complete plotting region has a width and height of
 #'   1, and the bottom left corner is (0,0). Default parameters \code{(left =
@@ -56,6 +72,9 @@ find_clusters <- function(data) {
 #' @param right See \code{left}.
 #' @param top See \code{left}.
 #' @param bottom See \code{left}.
+#' @param violin Whether to use violin plot (which may work better for
+#'   categorical predictors) instead of beeswarm plot for local explanations.
+#'   Default is \code{FALSE}.
 #' @return Returns a \code{data.frame} of SHAP values, where each column
 #'   corresponds to a variable and each row corresponds to an observation. SHAP
 #'   value of a categorical variable is the sum of SHAP values for all
@@ -71,21 +90,32 @@ find_clusters <- function(data) {
 #' # The following requires python libraries shap, sklearn and numpy,
 #' # otherwise NULL is returned. Small training and test sets are used to reduce
 #' # run time.
-#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, 2:7],
 #'                                           y_train = df_compas$y[1:1000])
 #' if (!is.null(m_optim)) {
-#'   # pdf("shap_figures.pdf") # Add this to save the two SHAP plots to PDF
-#'   shap_vals <- ShapleyVIC::compute_shap_value(model_py = m_optim,
-# '                                              var_names = names(df_compas)[-1],
-#'                                               x_test = df_compas[1001:1100, -1])
+#'   # pdf("shap_figures.pdf") # Add this to save the two SHAP plots to a PDF file
+#'   shap_vals <- ShapleyVIC::compute_shap_value(
+#'     model_py = m_optim,
+#'     var_names = c("Age", "Race", "Prior criminal history", "Gender",
+#'                   "Juvenile criminal history", "Current charge"),
+#'     x_test = df_compas[1001:1100, 2:7],
+#'     plot = FALSE # Change to `plot = TRUE` to plot SHAP values
+#'   )
 #'   # dev.off()
 #'   dim(shap_vals)
 #'   head(shap_vals)
 #' }
 #' @importFrom reticulate py_module_available
 #' @export
-compute_shap_value <- function(model_py, x_test, var_names = NULL,
+compute_shap_value <- function(model_py, x_test, var_names = NULL, plot = TRUE,
                                left = 0.3, right = 0.7, top = 0.8, bottom = 0.1) {
+  sys_info <- Sys.info()
+  is_arm <- length(grep(pattern = "ARM", x = sys_info["version"],
+                        ignore.case = FALSE)) > 0
+  if (sys_info["sysname"] == "Darwin" & is_arm) {
+    message("Currently not available for M1 Mac.\n")
+    return(NULL)
+  }
   if (is.null(dim(x_test)) || ncol(x_test) <= 1) {
     stop(simpleError("x_test should be a data.frame with at least 2 columns."))
   }
@@ -105,7 +135,7 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL,
     return(NULL)
   }
   # Variable names, not names of coefficients:
-  if (is.null(var_names)) var_names <- names(x_test)
+  var_names <- check_var_names(var_names = var_names, x_test = x_test)
   x_test_dm <- model_matrix_no_intercept(~ ., data = x_test)
   explainer = shap$explainers$Permutation(model_py$predict_proba, x_test_dm)
   shap_values = explainer(x_test_dm)
@@ -121,19 +151,28 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL,
       if (length(cols) > 1) apply(mat, 1, sum) else mat
     }))
   }
-  message("If plots are not saved to external PDF file, use 'Preious Plot' and 'Next Plot' buttons in RStudio 'Plots' panel to navigate between the beeswarm plot and bar plot of SHAP values.\n")
-  # Convert categorical variables to integers to plot (otherwise cannot plot):
-  x_test_num <- do.call("cbind", lapply(x_test, as.numeric))
-  f = plt$figure()
-  plt$subplots_adjust(left = left, right = right, top = top, bottom = bottom)
-  shap$summary_plot(values_mat, x_test_num, plot_type = "bar",
-                    feature_names = var_names,
-                    max_display = as.integer(length(var_names)))
-  f = plt$figure()
-  plt$subplots_adjust(left = left, right = right, top = top, bottom = bottom)
-  shap$summary_plot(values_mat, x_test_num,
-                    feature_names = var_names,
-                    max_display = as.integer(length(var_names)))
+  if (plot) {
+    message("If plots are not saved to external PDF file, use 'Preious Plot' and 'Next Plot' buttons in RStudio 'Plots' panel to navigate between the beeswarm plot and bar plot of SHAP values.\n")
+    # Convert categorical variables to integers to plot (otherwise cannot plot):
+    x_test_num <- do.call("cbind", lapply(x_test, as.numeric))
+    f = plt$figure()
+    plt$subplots_adjust(left = left, right = right, top = top, bottom = bottom)
+    shap$summary_plot(values_mat, x_test_num, plot_type = "bar",
+                      feature_names = var_names,
+                      max_display = as.integer(length(var_names)))
+    f = plt$figure()
+    plt$subplots_adjust(left = left + 0.2, right = right + 0.2, top = top, bottom = bottom)
+    violin <- FALSE # Whether to use violin plot offered by SHAP
+    if (!violin) {
+      shap$summary_plot(values_mat, x_test_num,
+                        feature_names = var_names,
+                        max_display = as.integer(length(var_names)))
+    } else {
+      shap$summary_plot(values_mat, x_test_num,
+                        feature_names = var_names, plot_type = "violin",
+                        max_display = as.integer(length(var_names)))
+    }
+  }
   # Return SHAP values as a data.frame (each column is a variable, each row is
   # an observation):
   shap_values <- as.data.frame(values_mat)

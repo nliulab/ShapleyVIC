@@ -6,6 +6,12 @@
 \usage{
 replace_coef(model_py, coef_vec)
 }
+\arguments{
+\item{model_py}{A Python callable model object that has a
+\code{predict_proba} function, or the path to a file that stores the model.}
+
+\item{coef_vec}{A vector of coefficients to replace those in \code{model_py}.}
+}
 \description{
 Replace estimated coefficients in a Python object with prespeficied values.
 }

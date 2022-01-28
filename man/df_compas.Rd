@@ -5,9 +5,9 @@
 \alias{df_compas}
 \title{COMPAS data}
 \format{
-A \code{data.frame} with 7214 rows and 7 binary variables from COMPAS
-  data, and the 8th column indicating whether each observation belongs to the
-  training or testing set:
+A \code{data.frame} with 7214 rows and 7 binary variables, and the
+  8th column indicating whether each observation belongs to the training or
+  testing set:
 \describe{
   \item{y}{2-year recidivism (the binary outcome, 1=event and 0=non-event).}
   \item{age}{Age dichotomised at 20.}
@@ -28,8 +28,5 @@ A dataset containing the 2-year recidivism outcome and 6 binary
   (https://github.com/Jiayun-Dong/vic/blob/v1.0.0/compas.csv) and code
   (https://github.com/Jiayun-Dong/vic/blob/v1.0.0/compas-logistics.R) shared
   by Dong and Rudin (2020).
-}
-\seealso{
-\code{\link{df_compas_models}}, \code{\link{df_compas_shapley_vic}}
 }
 \keyword{datasets}

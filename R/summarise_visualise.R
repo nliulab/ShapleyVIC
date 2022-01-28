@@ -31,20 +31,45 @@ compute_meta_interval <- function(val, val_sd) {
     hetero_i2 = summ$I2$TE, hetero_i2_lower = summ$I2$lower,
     hetero_i2_upper = summ$I2$upper)
 }
+adjust_val <- function(val, var_vif, var_vif_threshold) {
+  var_vif <- as.numeric(var_vif)
+  var_vif_threshold <- as.numeric(var_vif_threshold)[1]
+  if (var_vif_threshold <= 0) {
+    warning(simpleWarning("var_vif_threshold must be a positive number."))
+  }
+  if (length(var_vif) != length(val)) {
+    if (length(var_vif) > length(val)) {
+      stop(simpleError("length(var_vif) must be either length(val) or the number of predictors."))
+    } else {
+      d <- as.integer(length(val) / length(var_vif))
+      var_vif <- rep(var_vif, d)
+      if (length(var_vif) != length(val)) {
+        stop(simpleError("length(val) must be an integer multiple of length(var_vif)."))
+      }
+    }
+  }
+  # Now var_vif is converted to same length as val
+  # var_abs <- names(var_vif)[which(var_vif > var_vif_threshold)]
+  # val <- ifelse(var_names %in% var_abs, abs(val), val)
+  ifelse(var_vif > var_vif_threshold, abs(val), val)
+}
 #' Summarize ShapleyVIC values
 #' @param val A vector of ShapleyVIC values from all models evaluated.
 #' @param val_sd A vector of standard deviation of ShapleyVIC values from all
 #'   models evaluated. Must be the same length as \code{val}. If not available,
 #'   assign to \code{NULL}.
 #' @param var_names A vector of variable names.
-#' @param var_vif A vector of variance inflation factors (VIF) for each
-#'   variable. If specified, absolute values of \code{val} will be used for
-#'   variables with VIF>2.
+#' @param var_vif If \code{val} is the unadjusted SAGE values, specify a vector
+#'   of variance inflation factors (VIF) for each variable to obtain adjusted
+#'   ShapleyVIC values. Otherwise leave as \code{NULL}.
+#' @param var_vif_threshold Threshold for adjusting SAGE values based on VIF.
+#'   Default is 2.
 #' @return Returns a \code{data.frame} of variable names, their average
-#'   ShapleyVIC values, and the lower and upper bounds of 95\% prdiction
+#'   ShapleyVIC values, and the lower and upper bounds of 95\% prediction
 #'   intervals (\code{NA} if \code{val_sd = NULL}).
 #' @export
-summarise_shapley_vic <- function(val, val_sd, var_names, var_vif = NULL) {
+summarise_shapley_vic <- function(val, val_sd, var_names,
+                                  var_vif = NULL, var_vif_threshold = 2) {
   val <- as.numeric(as.vector(val))
   if (anyNA(val)) stop(simpleError("NA not allowed in val."))
   if (!is.null(val_sd)) {
@@ -56,14 +81,14 @@ summarise_shapley_vic <- function(val, val_sd, var_names, var_vif = NULL) {
   }
   var_names <- as.character(as.vector(var_names))
   if (!is.null(var_vif)) {
-    var_abs <- names(var_vif)[var_vif > 2]
-    val <- ifelse(var_names %in% var_abs, abs(val), val)
+    val <- adjust_val(val = val, var_vif = var_vif,
+                      var_vif_threshold = var_vif_threshold)
   }
   if (!is.null(val_sd)) {
     df_summ <- do.call("rbind", lapply(unique(var_names), function(var) {
       val_i <- val[var_names == var]
       val_sd_i <- val_sd[var_names == var]
-      summ_vec <- compute_meta_interval(val = val_i, val_sd = val_sd_i)
+      summ_vec <- suppressWarnings(compute_meta_interval(val = val_i, val_sd = val_sd_i))
       data.frame(Variable = var, val = summ_vec["mean"],
                  val_lower = summ_vec["pred_lower"],
                  val_upper = summ_vec["pred_upper"],
@@ -120,15 +145,18 @@ summarise_shapley_vic <- function(val, val_sd, var_names, var_vif = NULL) {
 #' head(df_compas)
 #' # The following requires python libraries sage and sklearn, otherwise NULL is
 #' # returned. Small training and test sets are used to reduce run time.
-#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, 2:7],
 #'                                           y_train = df_compas$y[1:1000])
 #' if (!is.null(m_optim)) {
-#'   vals <- ShapleyVIC::compute_sage_value(model_py = m_optim,
-#'                                          var_names = names(df_compas)[-1],
-#'                                          x_test = df_compas[1001:1100, -1],
-#'                                          y_test = df_compas$y[1001:1100])
-#'   ShapleyVIC::draw_bars(val = vals$sage_value[-1], val_sd = vals$sage_sd[-1],
-#'                         var_names = vals$var_name[-1])
+#'   vals <- ShapleyVIC::compute_sage_value(
+#'     model_py = m_optim,
+#'     var_names = c("Age", "Race", "Prior criminal history", "Gender",
+#'                   "Juvenile criminal history", "Current charge"),
+#'     x_test = df_compas[1001:1100, 2:7],
+#'     y_test = df_compas$y[1001:1100]
+#'   )
+#'   ShapleyVIC::draw_bars(val = vals$sage_value, val_sd = vals$sage_sd,
+#'                         var_names = vals$var_name)
 #' }
 #' @export
 #' @import ggplot2
@@ -146,6 +174,8 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
   if (is.null(val_lower) | is.null(val_upper)) {
     if (is.null(val_sd)) {
       draw_errors <- FALSE
+      dt$val_lower <- val
+      dt$val_upper <- val
     } else {
       draw_errors <- TRUE
       dt$val_lower <- val - 1.96 * val_sd
@@ -162,7 +192,8 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
     # used when all are +ve
     dt$sign_vec <- factor(as.numeric(dt$val_lower > 0), levels = c(1, 0))
   } else {
-    dt$sign_vec <- factor(rep(1, nrow(dt)), levels = c(1, 0))
+    # dt$sign_vec <- factor(rep(1, nrow(dt)), levels = c(1, 0))
+    dt$sign_vec <- factor(as.numeric(dt$val_lower > 0), levels = c(1, 0))
   }
   common_theme <- theme(panel.grid.major.y = element_line(colour = "grey95"),
                         panel.grid.minor = element_blank(),
@@ -200,6 +231,8 @@ draw_bars <- function(val, val_sd = NULL, val_lower = NULL, val_upper = NULL,
 #' @param ties.method How to handle tied ranks. Default is \code{"min"}. See
 #'   \code{\link{rank}}.
 #' @return Returns an integer vector of ranks of variables in descending order.
+#' @importFrom stats pnorm
+#' @importFrom utils combn
 rank_vars <- function(val, val_sd = NULL, ties.method = "min") {
   if (is.null(val_sd)) {
     rank(-val, ties.method = ties.method)
@@ -224,6 +257,7 @@ rank_vars <- function(val, val_sd = NULL, ties.method = "min") {
   }
 }
 #' Rank variables based on pairwise comparison of model reliance
+#' @inheritParams summarise_shapley_vic
 #' @param model_id A vector of model ID.
 #' @param val A numeric vector of model reliance from each model.
 #' @param val_sd A numeric vector of standard deviations of model reliance (with
@@ -244,7 +278,12 @@ rank_vars <- function(val, val_sd = NULL, ties.method = "min") {
 #' @import rlang
 #' @export
 rank_variables <- function(model_id, val, val_sd = NULL, var_names = NULL,
+                           var_vif = NULL, var_vif_threshold = 2,
                            summarise = FALSE, ties.method = "min") {
+  if (!is.null(var_vif)) {
+    val <- adjust_val(val = val, var_vif = var_vif,
+                      var_vif_threshold = var_vif_threshold)
+  }
   if (is.null(var_names)) {
     var_names <- paste0("X", seq_along(val))
   }
@@ -267,6 +306,8 @@ rank_variables <- function(model_id, val, val_sd = NULL, var_names = NULL,
 #' @param var_names Factor of variable names. Must be a factor.
 #' @param val Model reliance.
 #' @param perf_metric Model performance metrics, to determine colour.
+#' @param perf_metric_breaks Cut-off values to categorise model performance
+#'   metrics.
 #' @param impute_color When a model reliance interval is not observed with any
 #'   models, whether to impute color of this region based on neighboring
 #'   regions.
@@ -313,13 +354,13 @@ prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks,
   vl_poly <- vl_fill2 %>%
     select(.data$xnew, .data$xend, .data$y, .data$group) %>%
     pivot_longer(-c(.data$y, .data$group), names_to = "oldx", values_to = "x") %>%
-    arrange(.data$y) %>%
-    split(., .$oldx) %>%
-    purrr::map_df(., function(x) {
-      if (all(x$oldx == "xnew")) x <- arrange(x, desc(y))
-      x
+    arrange(.data$y)
+  vl_poly_list <- split(vl_poly, vl_poly$oldx)
+  vl_poly_final <- purrr::map_df(vl_poly_list, function(x_df) {
+      if (all(x_df$oldx == "xnew")) x_df <- arrange(x_df, desc(x_df$y))
+      x_df
     })
-  list(df_zebra_color = vl_fill2, df_violin_shape = vl_poly)
+  list(df_zebra_color = vl_fill2, df_violin_shape = vl_poly_final)
 }
 #' @import ggplot2
 #' @import ggpubr
@@ -348,6 +389,7 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
   ggpubr::get_legend(p_legend)
 }
 #' Draw coloured violin plot for model reliance.
+#' @inheritParams summarise_shapley_vic
 #' @param var_names Factor or string vector of variable names. Variables will be
 #'   plotted in the order specified by \code{levels(var_names)} if a factor is
 #'   provided and \code{var_ordering = NULL}. If \code{var_ordering} is
@@ -364,6 +406,8 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
 #'   indicates better performance. Default is \code{TRUE} (e.g., when
 #'   \code{perf_metric} is loss ratio).
 #' @param title Title of violin plot (optional).
+#' @param boarder_size Width of the boarder of violins (optional).
+#' @param plot_theme \code{ggplot theme} to apply to the violin plot, if any.
 #' @param impute_color When a model reliance interval is not observed with any
 #'   models, whether to impute color of this region based on neighboring
 #'   regions. Default is to impute, otherwise the corresponding regions will be
@@ -371,10 +415,17 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
 #' @import ggplot2
 #' @import RColorBrewer
 #' @import ggpubr
+#' @importFrom stats median
 #' @export
 draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
+                         var_vif = NULL, var_vif_threshold = 2,
                          smaller_is_better = TRUE, title = NULL,
+                         boarder_size = 0.5, plot_theme = NULL,
                          impute_color = TRUE) {
+  if (!is.null(var_vif)) {
+    val <- adjust_val(val = val, var_vif = var_vif,
+                      var_vif_threshold = var_vif_threshold)
+  }
   if (!is.null(var_ordering)) {
     var_ordering <- as.character(unique(var_ordering))
     if (length(var_ordering) != length(unique(var_names))) {
@@ -409,7 +460,7 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
     geom_hline(yintercept = 0, color = "grey") +
     geom_polygon(data = df_violin_list$df_violin_shape,
                  aes_string(x = "x", y = "y", group = "group"),
-                 color = "grey", size = 1, fill = "white") +
+                 color = "grey", size = boarder_size, fill = "white") +
     coord_flip() +
     scale_x_continuous(breaks = seq_along(x_lvls), labels = x_lvls) +
     theme(panel.grid.major.y = element_line(colour = "grey95"),
@@ -424,7 +475,8 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
                  aes_string(x = "xnew", xend = "xend", y = "y", yend = "y",
                             color = "y_color_cat")) +
     scale_color_manual(values = col_vec, na.value = "white") +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    plot_theme
   # Finally, combine plot with legend:
   ggpubr::ggarrange(p, legend.grob = color_legend, legend = "bottom")
 }

@@ -8,6 +8,7 @@ compute_shap_value(
   model_py,
   x_test,
   var_names = NULL,
+  plot = TRUE,
   left = 0.3,
   right = 0.7,
   top = 0.8,
@@ -25,6 +26,8 @@ categorical variables are properly encoded as factors.}
 coefficients, if categorical variables are involved). If unspecified,
 column names of \code{x_test} will be used.}
 
+\item{plot}{Whether to plot SHAP values (default is \code{TRUE}).}
+
 \item{left}{Numeric values between 0 and 1 controlling the boundaries of bar
 and beeswarm plots. The complete plotting region has a width and height of
 1, and the bottom left corner is (0,0). Default parameters \code{(left =
@@ -36,6 +39,10 @@ and right sides, and margins of 0.1 on the top and bottom.}
 \item{top}{See \code{left}.}
 
 \item{bottom}{See \code{left}.}
+
+\item{violin}{Whether to use violin plot (which may work better for
+categorical predictors) instead of beeswarm plot for local explanations.
+Default is \code{FALSE}.}
 }
 \value{
 Returns a \code{data.frame} of SHAP values, where each column
@@ -57,12 +64,17 @@ head(df_compas)
 # The following requires python libraries shap, sklearn and numpy,
 # otherwise NULL is returned. Small training and test sets are used to reduce
 # run time.
-m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, 2:7],
                                           y_train = df_compas$y[1:1000])
 if (!is.null(m_optim)) {
-  # pdf("shap_figures.pdf") # Add this to save the two SHAP plots to PDF
-  shap_vals <- ShapleyVIC::compute_shap_value(model_py = m_optim,
-                                              x_test = df_compas[1001:1100, -1])
+  # pdf("shap_figures.pdf") # Add this to save the two SHAP plots to a PDF file
+  shap_vals <- ShapleyVIC::compute_shap_value(
+    model_py = m_optim,
+    var_names = c("Age", "Race", "Prior criminal history", "Gender",
+                  "Juvenile criminal history", "Current charge"),
+    x_test = df_compas[1001:1100, 2:7],
+    plot = FALSE # Change to `plot = TRUE` to plot SHAP values
+  )
   # dev.off()
   dim(shap_vals)
   head(shap_vals)

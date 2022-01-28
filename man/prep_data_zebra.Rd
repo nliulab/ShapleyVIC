@@ -13,6 +13,9 @@ prep_data_zebra(var_names, val, perf_metric, perf_metric_breaks, impute_color)
 
 \item{perf_metric}{Model performance metrics, to determine colour.}
 
+\item{perf_metric_breaks}{Cut-off values to categorise model performance
+metrics.}
+
 \item{impute_color}{When a model reliance interval is not observed with any
 models, whether to impute color of this region based on neighboring
 regions.}

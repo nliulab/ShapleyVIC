@@ -47,12 +47,12 @@ data("df_compas", package = "ShapleyVIC")
 head(df_compas)
 # The following requires python libraries sage and sklearn, otherwise NULL is
 # returned. Small training and test sets are used to reduce run time.
-m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, 2:7],
                                           y_train = df_compas$y[1:1000])
 if (!is.null(m_optim)) {
   ShapleyVIC::compute_sage_value(model_py = m_optim,
-                                 var_names = names(df_compas)[-1],
-                                 x_test = df_compas[1001:1100, -1],
+                                 var_names = names(df_compas)[2:7],
+                                 x_test = df_compas[1001:1100, 2:7],
                                  y_test = df_compas$y[1001:1100])
 }
 }

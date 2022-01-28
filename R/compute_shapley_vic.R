@@ -3,6 +3,7 @@
 #' @param data A \code{data.frame} of predictors. Make sure categorical
 #'   variables are properly encoded as factors.
 #' @return Returns a numeric matrix.
+#' @importFrom stats model.matrix
 model_matrix_no_intercept <- function(formula, data) {
   mat <- model.matrix(object = formula, data = data)
   if (ncol(mat) == 2) {
@@ -12,6 +13,9 @@ model_matrix_no_intercept <- function(formula, data) {
   }
 }
 #' Replace estimated coefficients in a Python object with prespeficied values.
+#' @param model_py A Python callable model object that has a
+#'   \code{predict_proba} function, or the path to a file that stores the model.
+#' @param coef_vec A vector of coefficients to replace those in \code{model_py}.
 replace_coef <- function(model_py, coef_vec) {
   coef_vec <- as.numeric(coef_vec)
   if (anyNA(coef_vec)) {
@@ -33,6 +37,7 @@ replace_coef <- function(model_py, coef_vec) {
 #'   where the estimated coefficients will be identical to those from the
 #'   \code{glm} function.
 #' @importFrom reticulate py_module_available
+#' @importFrom stats glm coef
 #' @export
 logit_model_python <- function(x_train, y_train, save_to_file = NULL) {
   have_sklearn <- reticulate::py_module_available("sklearn")
@@ -79,12 +84,12 @@ logit_model_python <- function(x_train, y_train, save_to_file = NULL) {
 #' head(df_compas)
 #' # The following requires python libraries sage and sklearn, otherwise NULL is
 #' # returned. Small training and test sets are used to reduce run time.
-#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, -1],
+#' m_optim <- ShapleyVIC::logit_model_python(x_train = df_compas[1:1000, 2:7],
 #'                                           y_train = df_compas$y[1:1000])
 #' if (!is.null(m_optim)) {
 #'   ShapleyVIC::compute_sage_value(model_py = m_optim,
-#'                                  var_names = names(df_compas)[-1],
-#'                                  x_test = df_compas[1001:1100, -1],
+#'                                  var_names = names(df_compas)[2:7],
+#'                                  x_test = df_compas[1001:1100, 2:7],
 #'                                  y_test = df_compas$y[1001:1100])
 #' }
 #' @importFrom reticulate py_module_available py_eval
@@ -113,14 +118,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   } else {
     coef_vec <- c(model_py$intercept_, as.vector(model_py$coef_))
   }
-  if (!is.null(var_names)) {
-    if (length(var_names) != length(coef_vec)) {
-      warning(simpleWarning("var_names has wrong dimension. Replaced by 'names(x_test)'."))
-      var_names <- names(x_test)
-    }
-  } else {
-    var_names <- names(x_test)
-  }
+  var_names <- check_var_names(var_names = var_names, x_test = x_test)
   x_test_dm <- model_matrix_no_intercept(~ ., data = x_test)
   # Create a python array to indicate which columns in the design matrix
   # correspond to the same categorical variable.
@@ -137,7 +135,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   estimator <- sage$PermutationEstimator(imputer, loss_type)
   sage_values <- estimator(x_test_dm, matrix(y_test, ncol = 1),
                            verbose = check_convergence)
-  data.frame(var_name = var_names, sage_value = sage_values$values,
+  data.frame(var_name = var_names, sage_value_unadjusted = sage_values$values,
              sage_sd = sage_values$std)
 }
 #' Compute ShapleyVIC values for nearly optimal models
@@ -148,6 +146,14 @@ compute_sage_value <- function(model_py, x_test, y_test,
 #'   nearly optimal models, where each row corresponds to a model and each
 #'   column corresponds to a variable (or a category of a categorical variable).
 #' @param perf_metric Performance metric of each model in \code{coef_mat}.
+#' @param var_vif Variable inflation factor (VIF) for each variable (optional).
+#'   If provided, absolute SAGE values will be used instead of unadjusted SAGE
+#'   values as final ShapleyVIC values for variables with
+#'   \code{var_vif>var_vif_threshold}. If not specified, unadjusted SAGE values
+#'   will be saved as ShapleyVIC values, which can be inspected and adjusted in
+#'   the summarisation and visualisation steps later.
+#' @param var_vif_threshold Threshold for adjusting SAGE values based on VIF.
+#'   Default is 2.
 #' @param output_folder Folder to save ShapleyVIC values from individual models
 #'   (optional).
 #' @param n_cores Number of cores to use for parallel computing.
@@ -155,10 +161,25 @@ compute_sage_value <- function(model_py, x_test, y_test,
 #' @import parallel
 #' @import doParallel
 #' @import foreach
+#' @importFrom utils write.csv
 #' @export
 compute_shapley_vic <- function(model_py, coef_mat, perf_metric,
+                                var_vif = NULL, var_vif_threshold = 2,
                                 x_test, y_test, var_names = NULL,
                                 output_folder = NULL, n_cores) {
+  # If var_vif is provided, use it to adjust sage values
+  if (!is.null(var_vif)) {
+    var_vif <- as.numeric(var_vif)
+    var_vif_threshold <- as.numeric(var_vif_threshold)[1]
+    if (var_vif_threshold <= 0) {
+      warning(simpleWarning("var_vif_threshold must be a positive number."))
+    }
+    if (anyNA(var_vif) | length(var_vif) != ncol(x_test)) {
+      warning(simpleWarning("var_vif must be a numeric vector with the same length as ncol(x_test). NA not allowed."))
+    }
+  } else {# If var_vif not provided, set it to -1 for all variables for simplicity
+    var_vif <- rep(-1, ncol(x_test))
+  }
   # The model_py python object cannot be passed to individual parallel clusters,
   # therefore it is loaded from external file in every %dopar%
   if (is.character(model_py)) {# model_py was saved to file
@@ -175,7 +196,7 @@ compute_shapley_vic <- function(model_py, coef_mat, perf_metric,
   if (!is.null(output_folder)) {
     if (!file.exists(output_folder)) dir.create(output_folder)
   }
-  if (is.null(var_names)) var_names <- names(x_test)
+  var_names <- check_var_names(var_names = var_names, x_test = x_test)
   # Run ShapleyVIC using foreach
   n_cores_total <- parallel::detectCores()
   if (n_cores >= n_cores_total - 1) {
@@ -204,6 +225,12 @@ compute_shapley_vic <- function(model_py, coef_mat, perf_metric,
     df_sage_i <- compute_sage_value(model_py = model_py, coef_vec = coef_vec,
                                     var_names = var_names,
                                     x_test = x_test, y_test = y_test)
+    # Adjust SAGE values based on VIF to obtain ShapleyVIC values:
+    df_sage_i$shapley_vic_val <- ifelse(
+      var_vif > var_vif_threshold,
+      abs(df_sage_i$sage_value_unadjusted),
+      df_sage_i$sage_value_unadjusted
+    )
     df_sage_i <- cbind(model_id = i, df_sage_i, perf_metric = perf_metric[i])
     if (!is.null(output_folder)) {
       write.csv(

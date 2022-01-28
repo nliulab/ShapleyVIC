@@ -3,14 +3,15 @@
 \docType{data}
 \name{df_compas_shapley_vic}
 \alias{df_compas_shapley_vic}
-\title{ShapleyVIC values from the 350 nearly optimal models for COMPAS data}
+\title{ShapleyVIC values from the 350 nearly optimal models for recidivism prediction}
 \format{
-A \code{data.frame} with 2100 rows and 5 variables:
+A \code{data.frame} with 2100 rows and 6 variables:
 \describe{
   \item{model_id}{Model ID, ranging from 1 to 350.}
-  \item{var_name}{Variable name as in \code{\link{df_compas}}.}
-  \item{sage_value}{SAGE-based variable importance of the variable to the model.}
+  \item{var_name}{Variable names}.
+  \item{sage_value_unadjusted}{Unadjusted SAGE variable omportance of the variable to the model.}
   \item{sage_sd}{Standard error of \code{sage_value}.}
+  \item{shapley_vic_val}{ShapleyVIC value of the variable to the model, in this example same as unadjusted SAGE values.}
   \item{perf_metric}{Performance of each model, measured as the ratio of
   logistic loss to the minimum loss (i.e., logistic loss of model trained
   from training set).}
@@ -20,9 +21,6 @@ A \code{data.frame} with 2100 rows and 5 variables:
 df_compas_shapley_vic
 }
 \description{
-ShapleyVIC values from the 350 nearly optimal models for COMPAS data
-}
-\seealso{
-\code{\link{df_compas}}, \code{\link{df_compas_models}}
+ShapleyVIC values from the 350 nearly optimal models for recidivism prediction
 }
 \keyword{datasets}

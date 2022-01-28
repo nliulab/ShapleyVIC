@@ -8,6 +8,8 @@ compute_shapley_vic(
   model_py,
   coef_mat,
   perf_metric,
+  var_vif = NULL,
+  var_vif_threshold = 2,
   x_test,
   y_test,
   var_names = NULL,
@@ -24,6 +26,16 @@ nearly optimal models, where each row corresponds to a model and each
 column corresponds to a variable (or a category of a categorical variable).}
 
 \item{perf_metric}{Performance metric of each model in \code{coef_mat}.}
+
+\item{var_vif}{Variable inflation factor (VIF) for each variable (optional).
+If provided, absolute SAGE values will be used instead of unadjusted SAGE
+values as final ShapleyVIC values for variables with
+\code{var_vif>var_vif_threshold}. If not specified, unadjusted SAGE values
+will be saved as ShapleyVIC values, which can be inspected and adjusted in
+the summarisation and visualisation steps later.}
+
+\item{var_vif_threshold}{Threshold for adjusting SAGE values based on VIF.
+Default is 2.}
 
 \item{x_test}{A \code{data.frame} of predictors from the test set. Make sure
 categorical variables are properly encoded as factors.}

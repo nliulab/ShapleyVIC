@@ -9,6 +9,8 @@ rank_variables(
   val,
   val_sd = NULL,
   var_names = NULL,
+  var_vif = NULL,
+  var_vif_threshold = 2,
   summarise = FALSE,
   ties.method = "min"
 )
@@ -23,6 +25,13 @@ the same length as \code{val}), if available.}
 
 \item{var_names}{A factor or string vector of variable names (with the same
 length as \code{val}). If unspecified, variables will be named 'X1', 'X2', etc.}
+
+\item{var_vif}{If \code{val} is the unadjusted SAGE values, specify a vector
+of variance inflation factors (VIF) for each variable to obtain adjusted
+ShapleyVIC values. Otherwise leave as \code{NULL}.}
+
+\item{var_vif_threshold}{Threshold for adjusting SAGE values based on VIF.
+Default is 2.}
 
 \item{summarise}{If \code{TRUE}, ranks will be summarised across models by
 taking the numeric average. Default is \code{FALSE}, where ranks for

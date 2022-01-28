@@ -1,3 +1,8 @@
-# ShapleyVIC
+ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
+Learning
+================
 
-R package for *"Shapley variable importance clouds for interpretable machine learning"*.
+<!-- badges: start -->
+
+[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
+<!-- badges: end -->

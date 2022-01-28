@@ -9,8 +9,12 @@ draw_violins(
   var_ordering = NULL,
   val,
   perf_metric,
+  var_vif = NULL,
+  var_vif_threshold = 2,
   smaller_is_better = TRUE,
   title = NULL,
+  boarder_size = 0.5,
+  plot_theme = NULL,
   impute_color = TRUE
 )
 }
@@ -31,11 +35,22 @@ ordering (ton-down) in the plot (optional).}
 \item{perf_metric}{Model performance metrics (e.g., ratio of model loss to
 optimal loss), to determine color.}
 
+\item{var_vif}{If \code{val} is the unadjusted SAGE values, specify a vector
+of variance inflation factors (VIF) for each variable to obtain adjusted
+ShapleyVIC values. Otherwise leave as \code{NULL}.}
+
+\item{var_vif_threshold}{Threshold for adjusting SAGE values based on VIF.
+Default is 2.}
+
 \item{smaller_is_better}{Whether smaller value of model performance metrics
 indicates better performance. Default is \code{TRUE} (e.g., when
 \code{perf_metric} is loss ratio).}
 
 \item{title}{Title of violin plot (optional).}
+
+\item{boarder_size}{Width of the boarder of violins (optional).}
+
+\item{plot_theme}{\code{ggplot theme} to apply to the violin plot, if any.}
 
 \item{impute_color}{When a model reliance interval is not observed with any
 models, whether to impute color of this region based on neighboring
