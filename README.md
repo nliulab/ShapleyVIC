@@ -2,6 +2,30 @@ ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
 Learning
 ================
 
+-   [ShapleyVIC Introduction](#shapleyvic-introduction)
+    -   [Description](#description)
+    -   [Citation](#citation)
+    -   [Contact](#contact)
+-   [Install Package and Prepare
+    Data](#install-package-and-prepare-data)
+    -   [Install the package from
+        GitHub](#install-the-package-from-github)
+    -   [Python Setup](#python-setup)
+    -   [Load R packages](#load-r-packages)
+    -   [Load data](#load-data)
+-   [ShapleyVIC Demo: Recidivism Prediction
+    Study](#shapleyvic-demo-recidivism-prediction-study)
+    -   [Prepare training and test
+        datasets](#prepare-training-and-test-datasets)
+    -   [Train optimal logistic regression
+        model](#train-optimal-logistic-regression-model)
+    -   [SHAP analysis of optimal
+        model](#shap-analysis-of-optimal-model)
+    -   [Generate nearly optimal logistic regression
+        models](#generate-nearly-optimal-logistic-regression-models)
+    -   [ShapleyVIC analysis of nearly optimal
+        models](#shapleyvic-analysis-of-nearly-optimal-models)
+
 <!-- badges: start -->
 
 [![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
@@ -42,6 +66,17 @@ The application of ShapleyVIC consists of 3 general steps:
     regression coefficients.
 3.  Evaluate Shapley-based variable importance from each nearly optimal
     model and pool information for inference.
+
+## Citation
+
+Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N.
+Shapley variable importance cloud for interpretable machine learning.
+arXiv preprint arXiv:2110.02484 (<https://arxiv.org/abs/2110.02484>)
+
+## Contact
+
+-   Yilin Ning (Email: <yilin.ning@duke-nus.edu.sg>)
+-   Nan Liu (Email: <liu.nan@duke-nus.edu.sg>)
 
 # Install Package and Prepare Data
 
