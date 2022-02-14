@@ -2,6 +2,11 @@ ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
 Learning
 ================
 
+<!-- badges: start -->
+
+[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
+<!-- badges: end -->
+
 -   [ShapleyVIC Introduction](#shapleyvic-introduction)
     -   [Description](#description)
     -   [Citation](#citation)
@@ -25,11 +30,6 @@ Learning
         models](#generate-nearly-optimal-logistic-regression-models)
     -   [ShapleyVIC analysis of nearly optimal
         models](#shapleyvic-analysis-of-nearly-optimal-models)
-
-<!-- badges: start -->
-
-[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
-<!-- badges: end -->
 
 # ShapleyVIC Introduction
 
