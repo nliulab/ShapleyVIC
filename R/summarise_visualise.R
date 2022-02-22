@@ -13,7 +13,6 @@
 #'   thinks different "studies" can have different true value. In traditional
 #'   meta analysis this difference is due to different sample. Here it is due to
 #'   the genuinely different true model reliance in different models.
-#' @export
 #' @importFrom meta metagen
 compute_meta_interval <- function(val, val_sd) {
   val <- as.numeric(as.vector(val))
@@ -24,12 +23,11 @@ compute_meta_interval <- function(val, val_sd) {
     stop(simpleError("val and val_sd must have the same length."))
   }
   mt <- meta::metagen(TE = val, seTE = val_sd, studlab = 1:length(val),
-                      comb.fixed = FALSE, comb.random = TRUE)
+                      fixed = FALSE, random = TRUE, 
+                      method.tau = "DL", method.ci = "t")
   summ <- summary(mt)
-  c(mean = summ$random$TE, pred_lower = summ$predict$lower,
-    pred_upper = summ$predict$upper,
-    hetero_i2 = summ$I2$TE, hetero_i2_lower = summ$I2$lower,
-    hetero_i2_upper = summ$I2$upper)
+  c(mean = summ$random$TE, 
+    pred_lower = summ$predict$lower, pred_upper = summ$predict$upper)
 }
 adjust_val <- function(val, var_vif, var_vif_threshold) {
   var_vif <- as.numeric(var_vif)
@@ -92,10 +90,6 @@ summarise_shapley_vic <- function(val, val_sd, var_names,
       data.frame(Variable = var, val = summ_vec["mean"],
                  val_lower = summ_vec["pred_lower"],
                  val_upper = summ_vec["pred_upper"],
-                 # hetero_i2 = sprintf("%.1f%% (%.1f%%, %.1f%%)",
-                 #                     summ_vec["hetero_i2"] * 100,
-                 #                     summ_vec["hetero_i2_lower"] * 100,
-                 #                     summ_vec["hetero_i2_upper"] * 100),
                  stringsAsFactors = FALSE)
     }))
     df_summ$sign <- 0
@@ -105,9 +99,7 @@ summarise_shapley_vic <- function(val, val_sd, var_names,
     df_summ <- do.call("rbind", lapply(unique(var_names), function(var) {
       val_i <- val[var_names == var]
       data.frame(Variable = var, val = mean(val_i),
-                 val_lower = NA, # mean(val_i) - 1.96 * sd(val_i),
-                 val_upper = NA, # mean(val_i) + 1.96 * sd(val_i),
-                 # hetero_i2 = "",
+                 val_lower = NA,  val_upper = NA, 
                  stringsAsFactors = FALSE)
     }))
     df_summ$sign <- 0
