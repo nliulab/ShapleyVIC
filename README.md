@@ -2,11 +2,6 @@ ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
 Learning
 ================
 
-<!-- badges: start -->
-
-[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
-<!-- badges: end -->
-
 -   [ShapleyVIC Introduction](#shapleyvic-introduction)
     -   [Description](#description)
     -   [Citation](#citation)
@@ -31,9 +26,18 @@ Learning
     -   [ShapleyVIC analysis of nearly optimal
         models](#shapleyvic-analysis-of-nearly-optimal-models)
 
+<!-- badges: start -->
+
+[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
+<!-- badges: end -->
+
 # ShapleyVIC Introduction
 
--   GitHub Package (version 1.0.0)
+-   GitHub Package (version 1.0.1)
+    -   2022.2.22: Updated to version 1.0.1 to adapt to latest meta
+        package when computing uncertainty intervals for ShapleyVIC
+        values; added a wrapper function to install required Python
+        libraries.
 
 ## Description
 
@@ -80,6 +84,12 @@ arXiv preprint arXiv:2110.02484 (<https://arxiv.org/abs/2110.02484>)
 
 # Install Package and Prepare Data
 
+ShapleyVIC package requires R version 3.5.0 or higher. Users are
+recommended to use the latest version of R, which can be downloaded and
+installed from <https://cloud.r-project.org>. Windows users are also
+recommended to download and install Rtools4 from
+<https://cran.r-project.org/bin/windows/Rtools/rtools40.html>.
+
 Users are strongly recommended to use the ShapleyVIC package in RStudio
 Desktop instead of the native R GUI. RStudio Desktop can be downloaded
 and installed from <https://www.rstudio.com/products/rstudio/download/>.
@@ -114,31 +124,45 @@ for Windows users.
         C++. See
         <https://docs.microsoft.com/en-us/answers/questions/136595/error-microsoft-visual-c-140-or-greater-is-require.html>
         for instructions.
-3.  Quit and restart RStudio Desktop after steps above. Install required
-    Python libraries by executing the following R commands:
+3.  Quit and restart RStudio Desktop after steps above.
+4.  Specify the Python version installed in step 1 (e.g., version
+    3.10.2) as the current inspector using RStudio menu “Tools –> Global
+    Options…”:
+
+<div class="row">
+
+<div class="column">
+
+<img src="figures/py1.jpeg" width="45%"/>
+
+</div>
+
+<div class="column">
+
+<img src="figures/py2.jpeg" width="45%"/>
+
+</div>
+
+<div class="column">
+
+<img src="figures/py3.jpg" width="45%"/>
+
+</div>
+
+</div>
+
+When prompted, allow RStudio to restart to complete configuration.
+
+5.  Install required Python libraries (sage-importance, shap, pandas and
+    sklearn) by executing the following R commands:
 
 ``` r
-system("python.exe -m pip install --upgrade pip")
-system("pip install sage-importance")
-system("pip install sklearn")
-system("pip install pandas")
-system("pip install numpy==1.20.0 --user")
-system("pip install --upgrade setuptools")
-system("pip install shap")
+install_python_lib()
 ```
 
-Configuration is successful if all R commands below returns `TRUE`:
-
-``` r
-reticulate::py_module_available("sage")
-reticulate::py_module_available("sklearn")
-reticulate::py_module_available("shap")
-reticulate::py_module_available("matplotlib")
-```
-
-<font color="grey">*Installation errors may occur due to Python versions
-and/or other issues. We are working on a more detailed installation
-instruction to resolve these issues.*</font>
+<!--
+<font color="grey">*Installation errors may occur due to Python versions and/or other issues. We are working on a more detailed installation instruction to resolve these issues.*</font>
+-->
 
 ## Load R packages
 
@@ -227,15 +251,15 @@ coef_mat <- cbind(summary(m_optim_r)$coef, VIF = c(NA, m_vif))
 kable(coef_mat[order(coef_mat[, "VIF"], decreasing = TRUE), ], digits = 3)
 ```
 
-|               | Estimate | Std. Error | z value | Pr(&gt;\|z\|) |   VIF |
-|:--------------|---------:|-----------:|--------:|--------------:|------:|
-| prior         |   -0.854 |      0.061 | -13.984 |             0 | 1.062 |
-| juvenilecrime |   -0.865 |      0.084 | -10.238 |             0 | 1.036 |
-| age           |    1.500 |      0.187 |   8.011 |             0 | 1.026 |
-| race          |    0.416 |      0.053 |   7.858 |             0 | 1.018 |
-| currentcharge |   -0.254 |      0.056 |  -4.562 |             0 | 1.018 |
-| gender        |    0.384 |      0.068 |   5.651 |             0 | 1.008 |
-| (Intercept)   |    0.445 |      0.107 |   4.160 |             0 |    NA |
+|               | Estimate | Std. Error | z value | Pr(>\|z\|) |   VIF |
+|:--------------|---------:|-----------:|--------:|-----------:|------:|
+| prior         |   -0.854 |      0.061 | -13.984 |          0 | 1.062 |
+| juvenilecrime |   -0.865 |      0.084 | -10.238 |          0 | 1.036 |
+| age           |    1.500 |      0.187 |   8.011 |          0 | 1.026 |
+| race          |    0.416 |      0.053 |   7.858 |          0 | 1.018 |
+| currentcharge |   -0.254 |      0.056 |  -4.562 |          0 | 1.018 |
+| gender        |    0.384 |      0.068 |   5.651 |          0 | 1.008 |
+| (Intercept)   |    0.445 |      0.107 |   4.160 |          0 |    NA |
 
 ## SHAP analysis of optimal model
 
@@ -252,7 +276,7 @@ m_optim_py <- logit_model_python(
 var_names_display <- c("Age", "Race", "Prior criminal history", "Gender", 
                        "Juvenile criminal history", "Current charge")
 pdf("compas_shap.pdf") # To save plots to a single PDF
-m_shap <- ShapleyVIC::compute_shap_value(
+m_shap <- compute_shap_value(
   model_py = m_optim_py, x_test = df_compas_test[, -1], var_names = var_names_display
 )
 dev.off()
@@ -267,7 +291,7 @@ dev.off()
 ## Generate nearly optimal logistic regression models
 
 Nearly optimal logistic regression models are defined as models with
-logistic loss less than (1 + *ε*) times the minimum loss (i.e., logistic
+logistic loss less than (1+*ε*) times the minimum loss (i.e., logistic
 loss of the optimal model). An acceptable value for *ε* is 5%, specified
 by parameter `epsilon=0.05` in the function below.
 
@@ -292,7 +316,7 @@ models <- draw_models(
 ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
     ## TableGrob (1 x 2) "arrange": 2 grobs
     ##   z     cells    name           grob
@@ -303,7 +327,7 @@ models <- draw_models(
 
 ShapleyVIC values of each nearly optimal model are evaluated using the
 SAGE method. To account for colinearity, variables with VIF above
-threshold (e.g., VIF&gt;2) use the absolute SAGE value as the measure of
+threshold (e.g., VIF>2) use the absolute SAGE value as the measure of
 importance. This issue is not present in this demo, but may be observed
 in clinical data.
 
@@ -367,7 +391,7 @@ variable, accompanied by 95% prediction interval as an uncertainty
 measure. The overall importance is visualised using bar plot.
 
 ``` r
-df_shapley_vic_bar <- df_compas_shapley_vic %$% ShapleyVIC::summarise_shapley_vic(
+df_shapley_vic_bar <- df_compas_shapley_vic %$% summarise_shapley_vic(
   val = shapley_vic_val, val_sd = sage_sd, var_names = var_name
 )
 df_shapley_vic_bar
@@ -378,14 +402,14 @@ df_shapley_vic_bar
 ## 4                    Gender -0.0008260179 -0.0012374900 -0.0004145459
 ## 5 Juvenile criminal history  0.0146655104  0.0087401901  0.0205908307
 ## 6            Current charge -0.0013249191 -0.0018658585 -0.0007839797
-df_shapley_vic_bar %$% ShapleyVIC::draw_bars(
+df_shapley_vic_bar %$% draw_bars(
   val = val, val_lower = val_lower, val_upper = val_upper, 
   var_names = Variable, 
   title = "Variable ranking based on 350 nearly optimal models."
 ) 
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 Inference on the bar plot of overall importance alone may lead to a
 misperception that variable ranking is static. We convey the variability
@@ -394,7 +418,7 @@ between model reliance on each variable and model performance using a
 colored violin plot.
 
 ``` r
-df_compas_shapley_vic %$% ShapleyVIC::draw_violins(
+df_compas_shapley_vic %$% draw_violins(
   var_names = var_name, 
   var_ordering = levels(df_shapley_vic_bar$Variable), 
   val = shapley_vic_val, perf_metric = perf_metric, 
@@ -402,7 +426,7 @@ df_compas_shapley_vic %$% ShapleyVIC::draw_violins(
 )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ShapleyVIC values can also be used to rank variables by their importance
 to each model. The bar plot of ranks may help identify models with
@@ -410,7 +434,7 @@ increased reliance on specific variable of interest for further
 investigation.
 
 ``` r
-val_ranks <- df_compas_shapley_vic %$% ShapleyVIC::rank_variables(
+val_ranks <- df_compas_shapley_vic %$% rank_variables(
   model_id = model_id, val = shapley_vic_val, val_sd = sage_sd, var_names = var_name
 ) %>% 
   mutate(Variable = factor(Variable, levels = rev(levels(df_shapley_vic_bar$Variable))))
@@ -430,4 +454,4 @@ val_ranks %>%
   labs(x = "Ranking", y = "", title = "ShapleyVIC: Variable ranking among 350 models")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
