@@ -72,9 +72,6 @@ check_var_names <- function(var_names, x_test) {
 #' @param right See \code{left}.
 #' @param top See \code{left}.
 #' @param bottom See \code{left}.
-#' @param violin Whether to use violin plot (which may work better for
-#'   categorical predictors) instead of beeswarm plot for local explanations.
-#'   Default is \code{FALSE}.
 #' @return Returns a \code{data.frame} of SHAP values, where each column
 #'   corresponds to a variable and each row corresponds to an observation. SHAP
 #'   value of a categorical variable is the sum of SHAP values for all

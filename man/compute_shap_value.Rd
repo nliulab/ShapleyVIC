@@ -39,10 +39,6 @@ and right sides, and margins of 0.1 on the top and bottom.}
 \item{top}{See \code{left}.}
 
 \item{bottom}{See \code{left}.}
-
-\item{violin}{Whether to use violin plot (which may work better for
-categorical predictors) instead of beeswarm plot for local explanations.
-Default is \code{FALSE}.}
 }
 \value{
 Returns a \code{data.frame} of SHAP values, where each column
