@@ -42,7 +42,7 @@ replace_coef <- function(model_py, coef_vec) {
 logit_model_python <- function(x_train, y_train, save_to_file = NULL) {
   have_sklearn <- reticulate::py_module_available("sklearn")
   if (!have_sklearn) {
-    warning(simpleWarning("Python library sklearn not available. NULL returned."))
+    warning(simpleWarning(py_lib_warning("sklearn")))
     return(NULL)
   }
   model_r <- glm(y_train ~ ., data = cbind(y_train = y_train, x_train),
@@ -98,7 +98,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   # loss_type <- match.arg(loss, choices = c("cross entropy", "mse"))
   have_sage <- reticulate::py_module_available("sage")
   if (!have_sage) {
-    warning(simpleWarning("Python library sage-importance not available. NULL returned."))
+    warning(simpleWarning(py_lib_warning("sage-importance")))
     return(NULL)
   }
   if (!is.null(coef_vec)) {
@@ -125,6 +125,24 @@ compute_sage_value <- function(model_py, x_test, y_test,
                            verbose = check_convergence)
   data.frame(var_names = var_names, sage_value_unadjusted = sage_values$values,
              sage_sd = sage_values$std)
+}
+exit_shapley_vic <- function(my_cluster, is_temp, model_py_file) {
+  tryCatch({
+    # message("Attempting to stop cluster ...\n")
+    # cluster_stopped <- FALSE
+    # while (!cluster_stopped) {
+    doParallel::stopImplicitCluster()
+    parallel::stopCluster(cl = my_cluster)
+    #   cluster_stopped <- !foreach::getDoParRegistered() &
+    #     foreach::getDoParWorkers() == 1
+    # }
+    # message("Cluster stopped.\n")
+    if (is_temp) {
+      message("Removing temporary model_py save file ...\n")
+      fr <- file.remove(model_py_file)
+      if (fr) message("Temporary file removed.\n")
+    }
+  }, error = function(e) NULL)
 }
 #' Compute ShapleyVIC values for nearly optimal models
 #' @inheritParams compute_sage_value
@@ -230,21 +248,11 @@ compute_shapley_vic <- function(model_py, coef_mat, perf_metric,
     df_sage_i
   }
   rownames(df_sage) <- NULL
-  try({
-    # message("Attempting to stop cluster ...\n")
-    # cluster_stopped <- FALSE
-    # while (!cluster_stopped) {
-    doParallel::stopImplicitCluster()
-    parallel::stopCluster(cl = my_cluster)
-    #   cluster_stopped <- !foreach::getDoParRegistered() &
-    #     foreach::getDoParWorkers() == 1
-    # }
-    # message("Cluster stopped.\n")
-    if (is_temp) {
-      message("Removing temporary model_py save file ...\n")
-      fr <- file.remove(model_py_file)
-      if (fr) message("Temporary file removed.\n")
-    }
-  })
+  exit_shapley_vic(my_cluster = my_cluster, is_temp = is_temp, 
+                   model_py_file = model_py_file)
+  on.exit(
+    exit_shapley_vic(my_cluster = my_cluster, is_temp = is_temp, 
+                     model_py_file = model_py_file)
+  )
   return(df_sage)
 }

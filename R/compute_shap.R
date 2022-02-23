@@ -55,6 +55,9 @@ check_var_names <- function(var_names, x_test) {
   }
   var_names
 }
+py_lib_warning <- function(py_lib) {
+  paste("Python library", py_lib, "not available. NULL returned.")
+}
 #' Compute SHAP values for a model
 #' @param model_py A Python callable model object that has a
 #'   \code{predict_proba} function.
@@ -110,7 +113,7 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL, plot = TRUE,
   is_arm <- length(grep(pattern = "ARM", x = sys_info["version"],
                         ignore.case = FALSE)) > 0
   if (sys_info["sysname"] == "Darwin" & is_arm) {
-    message("Currently not available for M1 Mac.\n")
+    message("Currently not available for Apple silicon.\n")
     return(NULL)
   }
   if (is.null(dim(x_test)) || ncol(x_test) <= 1) {
@@ -118,17 +121,17 @@ compute_shap_value <- function(model_py, x_test, var_names = NULL, plot = TRUE,
   }
   have_shap <- reticulate::py_module_available("shap")
   if (!have_shap) {
-    warning(simpleWarning("Please install shap python library."))
+    warning(simpleWarning(py_lib_warning("shap")))
     return(NULL)
   }
   have_numpy <- reticulate::py_module_available("numpy")
   if (!have_numpy) {
-    warning(simpleWarning("Please install numpy python library."))
+    warning(simpleWarning(py_lib_warning("numpy")))
     return(NULL)
   }
   have_matplotlib <- reticulate::py_module_available("matplotlib")
   if (!have_matplotlib) {
-    warning(simpleWarning("Please install matplotlib python library."))
+    warning(simpleWarning(py_lib_warning("matplotlib")))
     return(NULL)
   }
   # Variable names, not names of coefficients:

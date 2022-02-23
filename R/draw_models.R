@@ -128,14 +128,18 @@ draw_models <- function(coef_optim, coef_optim_var, x, y,
       df$select <- 0
       df$select[i_final] <- 1
     }
-    print(plot_perf_metric(perf_metric = df$perf_metric, eligible = df$eligible,
-                           select = df$select, x_range = c(1, 1 + epsilon),
-                           plot_selected = TRUE,
-                           x_breaks = seq(from = 1, to = 1 + epsilon, by = 0.005)))
+    suppressMessages(
+      plot_perf_metric(perf_metric = df$perf_metric, eligible = df$eligible,
+                       select = df$select, x_range = c(1, 1 + epsilon),
+                       plot_selected = TRUE,
+                       x_breaks = seq(from = 1, to = 1 + epsilon, by = 0.005))
+    )
     df[df$select == 1, setdiff(names(df), c("id", "eligible", "select"))]
   } else {
-    print(plot_perf_metric(perf_metric = df$perf_metric, eligible = df$eligible,
-                           x_range = c(1, 1 + epsilon), plot_selected = FALSE))
+    suppressMessages(
+      plot_perf_metric(perf_metric = df$perf_metric, eligible = df$eligible,
+                       x_range = c(1, 1 + epsilon), plot_selected = FALSE)
+    )
     df
   }
 }
