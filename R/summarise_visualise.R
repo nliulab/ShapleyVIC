@@ -1,18 +1,11 @@
-#' Perform meta-analysis to summarise ShapleyVIC results
+#' Perform random effects meta-analysis to summarize ShapleyVIC results
 #' @param val A vector of ShapleyVIC values.
 #' @param val_sd A vector of standard deviation of ShapleyVIC values. Must be
 #'   the same length as \code{val}.
 #' @return Returns a named vector of summary statistics from the random effects
 #'   model analysis of ShapleyVIC values, including the estimated \code{mean},
 #'   the upper and lower of prediction interval (\code{pred_lower} and
-#'   \code{pred_upper}), the I2 statistic for heterogeneity (\code{hetero_i2})
-#'   and its confidence interval (\code{hetero_i2_lower} and
-#'   \code{hetero_i2_upper}).
-#' @details Fixed effects model is used when all "studies" are from same sample,
-#'   therefore should be estimating exactly the same thing. Random effects model
-#'   thinks different "studies" can have different true value. In traditional
-#'   meta analysis this difference is due to different sample. Here it is due to
-#'   the genuinely different true model reliance in different models.
+#'   \code{pred_upper}).
 #' @importFrom meta metagen
 compute_meta_interval <- function(val, val_sd) {
   val <- as.numeric(as.vector(val))
@@ -22,9 +15,9 @@ compute_meta_interval <- function(val, val_sd) {
   if (length(val) != length(val_sd)) {
     stop(simpleError("val and val_sd must have the same length."))
   }
-  mt <- meta::metagen(TE = val, seTE = val_sd, studlab = 1:length(val),
-                      fixed = FALSE, random = TRUE, 
-                      method.tau = "DL", method.ci = "t")
+  mt <- suppressWarnings(meta::metagen(TE = val, seTE = val_sd, studlab = 1:length(val),
+                                       fixed = FALSE, random = TRUE, 
+                                       method.tau = "DL", method.ci = "t"))
   summ <- summary(mt)
   c(mean = summ$random$TE, 
     pred_lower = summ$predict$lower, pred_upper = summ$predict$upper)
@@ -47,8 +40,6 @@ adjust_val <- function(val, var_vif, var_vif_threshold) {
     }
   }
   # Now var_vif is converted to same length as val
-  # var_abs <- names(var_vif)[which(var_vif > var_vif_threshold)]
-  # val <- ifelse(var_names %in% var_abs, abs(val), val)
   ifelse(var_vif > var_vif_threshold, abs(val), val)
 }
 #' Summarize ShapleyVIC values
