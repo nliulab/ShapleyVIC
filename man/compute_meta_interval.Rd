@@ -2,7 +2,7 @@
 % Please edit documentation in R/summarise_visualise.R
 \name{compute_meta_interval}
 \alias{compute_meta_interval}
-\title{Perform meta-analysis to summarise ShapleyVIC results}
+\title{Perform random effects meta-analysis to summarize ShapleyVIC results}
 \usage{
 compute_meta_interval(val, val_sd)
 }
@@ -16,17 +16,8 @@ the same length as \code{val}.}
 Returns a named vector of summary statistics from the random effects
   model analysis of ShapleyVIC values, including the estimated \code{mean},
   the upper and lower of prediction interval (\code{pred_lower} and
-  \code{pred_upper}), the I2 statistic for heterogeneity (\code{hetero_i2})
-  and its confidence interval (\code{hetero_i2_lower} and
-  \code{hetero_i2_upper}).
+  \code{pred_upper}).
 }
 \description{
-Perform meta-analysis to summarise ShapleyVIC results
-}
-\details{
-Fixed effects model is used when all "studies" are from same sample,
-  therefore should be estimating exactly the same thing. Random effects model
-  thinks different "studies" can have different true value. In traditional
-  meta analysis this difference is due to different sample. Here it is due to
-  the genuinely different true model reliance in different models.
+Perform random effects meta-analysis to summarize ShapleyVIC results
 }

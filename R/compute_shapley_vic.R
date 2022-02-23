@@ -42,13 +42,7 @@ replace_coef <- function(model_py, coef_vec) {
 logit_model_python <- function(x_train, y_train, save_to_file = NULL) {
   have_sklearn <- reticulate::py_module_available("sklearn")
   if (!have_sklearn) {
-    warning(simpleWarning("Need to install sklearn python library."))
-    # print("installing now")
-    # reticulate::py_install("sklearn")
-    # if (reticulate::py_module_available("sklearn"))
-    # print("python library sklearn is now installed")
-    # else
-    # print("sklearn installation failed")
+    warning(simpleWarning("Python library sklearn not available. NULL returned."))
     return(NULL)
   }
   model_r <- glm(y_train ~ ., data = cbind(y_train = y_train, x_train),
@@ -104,13 +98,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   # loss_type <- match.arg(loss, choices = c("cross entropy", "mse"))
   have_sage <- reticulate::py_module_available("sage")
   if (!have_sage) {
-    warning(simpleWarning("Need to install sage python library."))
-    # print("installing now")
-    # reticulate::py_install("sage")
-    # if (reticulate::py_module_available("sage"))
-    #   print("python library sage is now installed")
-    # else
-    #   print("sage installation failed")
+    warning(simpleWarning("Python library sage-importance not available. NULL returned."))
     return(NULL)
   }
   if (!is.null(coef_vec)) {
@@ -135,7 +123,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
   estimator <- sage$PermutationEstimator(imputer, loss_type)
   sage_values <- estimator(x_test_dm, matrix(y_test, ncol = 1),
                            verbose = check_convergence)
-  data.frame(var_name = var_names, sage_value_unadjusted = sage_values$values,
+  data.frame(var_names = var_names, sage_value_unadjusted = sage_values$values,
              sage_sd = sage_values$std)
 }
 #' Compute ShapleyVIC values for nearly optimal models
@@ -151,7 +139,7 @@ compute_sage_value <- function(model_py, x_test, y_test,
 #'   values as final ShapleyVIC values for variables with
 #'   \code{var_vif>var_vif_threshold}. If not specified, unadjusted SAGE values
 #'   will be saved as ShapleyVIC values, which can be inspected and adjusted in
-#'   the summarisation and visualisation steps later.
+#'   the summary and visualization steps later.
 #' @param var_vif_threshold Threshold for adjusting SAGE values based on VIF.
 #'   Default is 2.
 #' @param output_folder Folder to save ShapleyVIC values from individual models
@@ -242,23 +230,21 @@ compute_shapley_vic <- function(model_py, coef_mat, perf_metric,
     df_sage_i
   }
   rownames(df_sage) <- NULL
-  return(df_sage)
-  on.exit({
-    try({
-      # message("Attempting to stop cluster ...\n")
-      # cluster_stopped <- FALSE
-      # while (!cluster_stopped) {
-      doParallel::stopImplicitCluster()
-      parallel::stopCluster(cl = my_cluster)
-      #   cluster_stopped <- !foreach::getDoParRegistered() &
-      #     foreach::getDoParWorkers() == 1
-      # }
-      # message("Cluster stopped.\n")
-      if (is_temp) {
-        message("Removing temporary model_py save file ...\n")
-        fr <- file.remove(model_py_file)
-        if (fr) message("Temporary file removed.\n")
-      }
-    })
+  try({
+    # message("Attempting to stop cluster ...\n")
+    # cluster_stopped <- FALSE
+    # while (!cluster_stopped) {
+    doParallel::stopImplicitCluster()
+    parallel::stopCluster(cl = my_cluster)
+    #   cluster_stopped <- !foreach::getDoParRegistered() &
+    #     foreach::getDoParWorkers() == 1
+    # }
+    # message("Cluster stopped.\n")
+    if (is_temp) {
+      message("Removing temporary model_py save file ...\n")
+      fr <- file.remove(model_py_file)
+      if (fr) message("Temporary file removed.\n")
+    }
   })
+  return(df_sage)
 }

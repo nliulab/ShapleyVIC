@@ -8,7 +8,7 @@
 A \code{data.frame} with 2100 rows and 6 variables:
 \describe{
   \item{model_id}{Model ID, ranging from 1 to 350.}
-  \item{var_name}{Variable names}.
+  \item{var_names}{Variable names}.
   \item{sage_value_unadjusted}{Unadjusted SAGE variable omportance of the variable to the model.}
   \item{sage_sd}{Standard error of \code{sage_value}.}
   \item{shapley_vic_val}{ShapleyVIC value of the variable to the model, in this example same as unadjusted SAGE values.}

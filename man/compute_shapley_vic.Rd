@@ -32,7 +32,7 @@ If provided, absolute SAGE values will be used instead of unadjusted SAGE
 values as final ShapleyVIC values for variables with
 \code{var_vif>var_vif_threshold}. If not specified, unadjusted SAGE values
 will be saved as ShapleyVIC values, which can be inspected and adjusted in
-the summarisation and visualisation steps later.}
+the summary and visualization steps later.}
 
 \item{var_vif_threshold}{Threshold for adjusting SAGE values based on VIF.
 Default is 2.}
