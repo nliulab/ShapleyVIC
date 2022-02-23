@@ -70,7 +70,7 @@ The application of ShapleyVIC consists of 3 general steps:
 ## Citation
 
 Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N.
-Shapley variable importance cloud for interpretable machine learning. Patterns 2022 Apr; 3: 100452.
+Shapley variable importance cloud for interpretable machine learning. Patterns 2022; 3: 100452.
 (<https://doi.org/10.1016/j.patter.2022.100452>)
 
 ## Contact
