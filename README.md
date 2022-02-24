@@ -1,3 +1,9 @@
+
+<!-- badges: start -->
+
+[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
+<!-- badges: end -->
+
 ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
 Learning
 ================
@@ -11,6 +17,8 @@ Learning
     -   [Install the package from
         GitHub](#install-the-package-from-github)
     -   [Python Setup](#python-setup)
+        -   [For Mac users](#for-mac-users)
+        -   [For Windows 10 users](#for-windows-10-users)
     -   [Load R packages](#load-r-packages)
     -   [Load data](#load-data)
 -   [ShapleyVIC Demo: Recidivism Prediction
@@ -26,18 +34,12 @@ Learning
     -   [ShapleyVIC analysis of nearly optimal
         models](#shapleyvic-analysis-of-nearly-optimal-models)
 
-<!-- badges: start -->
-
-[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
-<!-- badges: end -->
-
 # ShapleyVIC Introduction
 
 -   GitHub Package (version 1.0.1)
-    -   2022.2.22: Updated to version 1.0.1 to adapt to latest meta
-        package when computing uncertainty intervals for ShapleyVIC
-        values; added a wrapper function to install required Python
-        libraries.
+    -   2022.2.24: Updated to version 1.0.1 to change in default options
+        in latest meta package; added a function to install required
+        Python libraries.
 
 ## Description
 
@@ -75,7 +77,8 @@ The application of ShapleyVIC consists of 3 general steps:
 
 Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N.
 Shapley variable importance cloud for interpretable machine learning.
-arXiv preprint arXiv:2110.02484 (<https://arxiv.org/abs/2110.02484>)
+Patterns 2022; 3: 100452.
+(<https://doi.org/10.1016/j.patter.2022.100452>)
 
 ## Contact
 
@@ -111,58 +114,122 @@ facilitate our proposed SHAP-ShapleyVIC framework for comprehensive
 variable importance assessments, the ShapleyVIC package provides an R
 interface to the [Python library for
 SHAP](https://github.com/slundberg/shap). Below is the instructions to
-set up Python and install relevant libraries for the ShapleyVIC package
-for Windows users.
+set up Python and install relevant libraries for the ShapleyVIC package.
 
-1.  Download and install the latest version of Python from
-    <https://www.python.org/downloads/>.
-2.  Windows users need to install Microsoft Visual C++ (version 14.0 or
-    later) to use the shap Python library:
-    -   Download and install the Microsoft C++ Build Tools from
-        <https://visualstudio.microsoft.com/visual-cpp-build-tools/>.
-    -   Use the Microsoft C++ Build Tools to install Microsoft Visual
-        C++. See
-        <https://docs.microsoft.com/en-us/answers/questions/136595/error-microsoft-visual-c-140-or-greater-is-require.html>
-        for instructions.
-3.  Quit and restart RStudio Desktop after steps above.
-4.  Specify the Python version installed in step 1 (e.g., version
-    3.10.2) as the current inspector using RStudio menu “Tools –> Global
+*We tested our installation instruction on multiple platforms to provide
+solutions to as many issues as we can find. If you encounter any
+difficulty configuring Python and/or installing Python libraries that
+are not covered by the instruction below, please contact us for help.*
+
+### For Mac users
+
+1.  If no user-installed Python 3 is currently available, download and
+    install the latest version of Python 3 from
+    <https://www.python.org/downloads/>. **Apple silicon machines
+    require Python 3.10 or later.**
+2.  Quit and restart RStudio Desktop after steps above.
+3.  Specify the latest **user-installed version of Python 3** as the
+    current inspector by selecting `/usr/local/bin/python3` (please **do
+    not** select `/usr/bin/python3`) using RStudio menu “Tools –> Global
     Options…”:
 
-<div class="row">
+<div class="figure" style="text-align: center">
 
-<div class="column">
-
-<img src="figures/py1.jpeg" width="45%"/>
+<img src="figures/py_mac1.png" width="60%"/>
 
 </div>
 
-<div class="column">
+<div class="figure" style="text-align: center">
 
-<img src="figures/py2.jpeg" width="45%"/>
-
-</div>
-
-<div class="column">
-
-<img src="figures/py3.jpg" width="45%"/>
+<img src="figures/py_mac2.png" width="60%"/>
 
 </div>
 
+<div class="figure" style="text-align: center">
+
+<img src="figures/py_mac3.png" width="60%"/>
+
 </div>
 
+Note that if multiple versions of Python 3 are installed,
+`/usr/local/bin/python3` will link to the latest user-installed version.
 When prompted, allow RStudio to restart to complete configuration.
 
-5.  Install required Python libraries (sage-importance, shap, pandas and
-    sklearn) by executing the following R commands:
+4.  Install required Python libraries (sage-importance, pandas, sklearn,
+    and shap if not Apple silicon) by executing the following R command:
 
 ``` r
 install_python_lib()
 ```
 
-<!--
-<font color="grey">*Installation errors may occur due to Python versions and/or other issues. We are working on a more detailed installation instruction to resolve these issues.*</font>
--->
+### For Windows 10 users
+
+1.  If no user-installed Python 3 is currently available, download and
+    install the latest version of Python 3 from
+    <https://www.python.org/downloads/>.
+2.  Installation of the shap Python library requires Microsoft C++
+    (version 14.0 or later), which is not pre-installed with Windows and
+    needs to be installed via the Microsoft C++ Build Tools:
+    -   First download and install the Build Tools from
+        <https://visualstudio.microsoft.com/visual-cpp-build-tools/>.
+    -   When the Build Tools is installed, use it to install Desktop
+        development with C++:
+
+<div class="figure" style="text-align: center">
+
+<img src="figures/cpp.png"/>
+
+</div>
+
+3.  Quit and restart RStudio Desktop after steps above.
+4.  Specify the Python version installed in step 1 (e.g., version
+    3.10.2) as the current inspector using RStudio menu “Tools –> Global
+    Options…”:
+
+<div class="figure" style="text-align: center">
+
+<img src="figures/py1.jpeg" width="60%"/>
+
+</div>
+
+<div class="figure" style="text-align: center">
+
+<img src="figures/py2.jpeg" width="60%"/>
+
+</div>
+
+<div class="figure" style="text-align: center">
+
+<img src="figures/py3.jpg" width="60%"/>
+
+</div>
+
+When prompted, allow RStudio to restart to complete configuration.
+
+5.  Install required Python libraries (sage-importance, sklearn, pandas
+    and shap) by executing the following R command:
+
+``` r
+install_python_lib()
+```
+
+In case of error when installing the shap library:
+`ERROR: Could not install packages due to an OSError: [WinError 5]`,
+please follow instructions provided in section “Home Users: Remove the
+260 Character Path Limit by Editing the Registry” in [this
+link](https://www.howtogeek.com/266621/how-to-make-windows-10-accept-file-paths-over-260-characters/),
+and then repeat Step 5. If the error persists, or if other errors occur,
+please contact us.
+
+Alternatively, users may choose to not install the shap library by using
+the following R command:
+
+``` r
+install_python_lib(install_shap = FALSE)
+```
+
+This will disable the use of the `compute_shap_value()` function in the
+ShapleyVIC package, but does not affect the use of other functions.
 
 ## Load R packages
 
@@ -170,14 +237,6 @@ install_python_lib()
 library(ShapleyVIC)
 library(ggplot2)
 library(dplyr) # For convenient data manipulation
-## 
-## Attaching package: 'dplyr'
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
 library(magrittr) # To use `%$%` operator for convenience
 library(knitr)
 ```
@@ -251,15 +310,15 @@ coef_mat <- cbind(summary(m_optim_r)$coef, VIF = c(NA, m_vif))
 kable(coef_mat[order(coef_mat[, "VIF"], decreasing = TRUE), ], digits = 3)
 ```
 
-|               | Estimate | Std. Error | z value | Pr(>\|z\|) |   VIF |
-|:--------------|---------:|-----------:|--------:|-----------:|------:|
-| prior         |   -0.854 |      0.061 | -13.984 |          0 | 1.062 |
-| juvenilecrime |   -0.865 |      0.084 | -10.238 |          0 | 1.036 |
-| age           |    1.500 |      0.187 |   8.011 |          0 | 1.026 |
-| race          |    0.416 |      0.053 |   7.858 |          0 | 1.018 |
-| currentcharge |   -0.254 |      0.056 |  -4.562 |          0 | 1.018 |
-| gender        |    0.384 |      0.068 |   5.651 |          0 | 1.008 |
-| (Intercept)   |    0.445 |      0.107 |   4.160 |          0 |    NA |
+|                | Estimate | Std. Error | z value | Pr(>\|z\|) |   VIF |
+|:---------------|---------:|-----------:|--------:|-----------:|------:|
+| prior1         |   -0.854 |      0.061 | -13.984 |          0 | 1.062 |
+| juvenilecrime1 |   -0.865 |      0.084 | -10.238 |          0 | 1.036 |
+| age1           |    1.500 |      0.187 |   8.011 |          0 | 1.026 |
+| race1          |    0.416 |      0.053 |   7.858 |          0 | 1.018 |
+| currentcharge1 |   -0.254 |      0.056 |  -4.562 |          0 | 1.018 |
+| gender1        |    0.384 |      0.068 |   5.651 |          0 | 1.008 |
+| (Intercept)    |    0.445 |      0.107 |   4.160 |          0 |    NA |
 
 ## SHAP analysis of optimal model
 
@@ -313,15 +372,9 @@ models <- draw_models(
   x = df_compas_train[, -1], y = df_compas_train$y, 
   M = 800, u1 = 0.5, u2 = 80, epsilon = 0.05, n_final = 350
 )
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-    ## TableGrob (1 x 2) "arrange": 2 grobs
-    ##   z     cells    name           grob
-    ## 1 1 (1-1,1-1) arrange gtable[layout]
-    ## 2 2 (1-1,2-2) arrange gtable[layout]
+![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## ShapleyVIC analysis of nearly optimal models
 
@@ -350,13 +403,16 @@ df_compas_shapley_vic <- compute_shapley_vic(
 )
 ```
 
+*Possible Python errors may occur in this step in Windows system, and we
+are actively looking for solutions.*
+
 The output `data.frame` contains ShapleyVIC values and the model
 performance of each model (measured as the ratio of logistic loss to
 minimum loss).
 
 ``` r
 head(df_compas_shapley_vic, 12)
-##    model_id                  var_name sage_value_unadjusted      sage_sd
+##    model_id                 var_names sage_value_unadjusted      sage_sd
 ## 1         1                       Age          0.0026693517 3.409647e-04
 ## 2         1                      Race         -0.0015550084 4.302082e-04
 ## 3         1    Prior criminal history          0.0148514285 4.843732e-04
@@ -392,7 +448,7 @@ measure. The overall importance is visualised using bar plot.
 
 ``` r
 df_shapley_vic_bar <- df_compas_shapley_vic %$% summarise_shapley_vic(
-  val = shapley_vic_val, val_sd = sage_sd, var_names = var_name
+  val = shapley_vic_val, val_sd = sage_sd, var_names = var_names
 )
 df_shapley_vic_bar
 ##                    Variable           val     val_lower     val_upper
@@ -409,7 +465,7 @@ df_shapley_vic_bar %$% draw_bars(
 ) 
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 Inference on the bar plot of overall importance alone may lead to a
 misperception that variable ranking is static. We convey the variability
@@ -419,14 +475,14 @@ colored violin plot.
 
 ``` r
 df_compas_shapley_vic %$% draw_violins(
-  var_names = var_name, 
+  var_names = var_names, 
   var_ordering = levels(df_shapley_vic_bar$Variable), 
   val = shapley_vic_val, perf_metric = perf_metric, 
   title = "Variable importance to 350 nearly optimal models."
 )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 ShapleyVIC values can also be used to rank variables by their importance
 to each model. The bar plot of ranks may help identify models with
@@ -435,7 +491,7 @@ investigation.
 
 ``` r
 val_ranks <- df_compas_shapley_vic %$% rank_variables(
-  model_id = model_id, val = shapley_vic_val, val_sd = sage_sd, var_names = var_name
+  model_id = model_id, val = shapley_vic_val, val_sd = sage_sd, var_names = var_names
 ) %>% 
   mutate(Variable = factor(Variable, levels = rev(levels(df_shapley_vic_bar$Variable))))
 head(val_ranks, 6)
@@ -454,4 +510,4 @@ val_ranks %>%
   labs(x = "Ranking", y = "", title = "ShapleyVIC: Variable ranking among 350 models")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
