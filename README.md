@@ -1,7 +1,7 @@
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/doi-2110.02484-yellow.svg)](https://arxiv.org/abs/2110.02484)
+[![](https://img.shields.io/badge/doi-j.patter.2022.100452-yellow.svg)](https://doi.org/10.1016/j.patter.2022.100452)
 <!-- badges: end -->
 
 ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
