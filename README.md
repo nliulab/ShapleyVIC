@@ -11,6 +11,8 @@ Learning
 -   [ShapleyVIC Introduction](#shapleyvic-introduction)
     -   [Description](#description)
     -   [Citation](#citation)
+    -   [Derivative works](#derivative-works)
+        -   [AutoScore-ShapleyVIC workflow](#autoscore-shapleyvic-framework-for-interpretable-development-of-clinical-risk-scores)   
     -   [Contact](#contact)
 -   [Install Package and Prepare
     Data](#install-package-and-prepare-data)
@@ -78,6 +80,16 @@ The application of ShapleyVIC consists of 3 general steps:
 Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N.
 Shapley variable importance cloud for interpretable machine learning.
 Patterns 2022; 3: 100452. (<https://doi.org/10.1016/j.patter.2022.100452>)
+
+## Derivative works
+
+### AutoScore-ShapleyVIC framework for interpretable development of clinical risk scores
+
+To extend its benefit to interpretable clinical decision making, we
+develop a robust and interpretable variable selection approach using ShapleyVIC,
+and integrate it with with an automated and modularized risk score generator,
+[AutoScore](https://github.com/nliulab/AutoScore), for convenient
+implementation. Read [the tutorial with a clinical example](README_autoscore_shapleyvic.md) for a detailed user guide.
 
 ## Contact
 
