@@ -1,3 +1,8 @@
+<!-- badges: start -->
+
+[![](https://img.shields.io/badge/doi-2201.03291-yellow.svg)](https://arxiv.org/abs/2201.03291)
+<!-- badges: end -->
+
 AutoScore-ShapleyVIC: A Novel Interpretable Machine Learning System to
 Generate Clinical Risk Scores
 ================
@@ -17,11 +22,6 @@ Generate Clinical Risk Scores
     -   [Step 3: Model development using ShapleyVIC-based ranking and
         AutoScore
         workflow](#step-3-model-development-using-shapleyvic-based-ranking-and-autoscore-workflow)
-
-<!-- badges: start -->
-
-[![](https://img.shields.io/badge/doi-2201.03291-yellow.svg)](https://arxiv.org/abs/2201.03291)
-<!-- badges: end -->
 
 # AutoScore-ShapleyVIC Introduction
 
