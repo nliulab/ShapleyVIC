@@ -395,7 +395,7 @@ threshold (e.g., VIF>2) use the absolute SAGE value as the measure of
 importance. This issue is not present in this demo, but may be observed
 in clinical data.
 
-This step can be time consuming. Users are recommended to reduce run
+This step can be time consuming and may take a few hours. Users are recommended to reduce run
 time by allocating multiple cores to enable parallel computing, using
 the `n_cores` parameter. Note that users should not specify more than
 `n-1` cores for a computer with `n` cores. Users are also recommended to
