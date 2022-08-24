@@ -339,7 +339,7 @@ explain the optimal model using SHAP.
 ``` r
 # First create a Python version of the optimal model:
 m_optim_py <- logit_model_python(
-  x_train = df_compas_train[, -1], 
+  x_train = df_compas_train[, -1], # note [, -1] means remove 1st column, which is `y`
   y_train = df_compas_train$y
 )
 # Then calculate SHAP values and visualize:
