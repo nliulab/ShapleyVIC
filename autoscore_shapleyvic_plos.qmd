@@ -1,0 +1,160 @@
+# AutoScore-ShapleyVIC for Interpretable Risk Score Development
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, cache = TRUE,
+                      fig.width = 6, fig.height = 6)
+
+library(dplyr)
+dat <- readRDS("~/Documents/nBox/dat_final_readmit_or_mort.RDS") %>%
+  rename(Diabetes = DM, LOS_inp = LOS) %>%
+  # select(-admit_year, -Num_visit_last_1yr, -CCI, -VENTILATION) %>%
+  select(-admit_year, -Num_visit_last_1yr, -CCI) %>%
+  filter(Age >= 21, !is.na(EDBoardingTime), !is.na(ConsultationWaitingTime)) %>%
+  as.data.frame()
+protected_fdr <- "~/Documents/nBox/reproduce_plos/output_original"
+```
+
+In this chapter, we demonstrate the use of AutoScore-ShapleyVIC using the same
+simulated dataset as in , focusing on 
+the variable ranking step using ShapleyVIC and the difference in the resulting
+parsimony plot.
+
+Cite the following papers for AutoScore-ShapleyVIC:
+
+Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N. Shapley
+variable importance cloud for interpretable machine learning. *Patterns* 2022
+(<https://doi.org/10.1016/j.patter.2022.100452>)
+
+Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. A novel
+interpretable machine learning system to generate clinical risk scores: An
+application for predicting early mortality or unplanned readmission in a
+retrospective cohort study. *PLOS Digit Health* 1(6): e0000062.
+(<https://doi.org/10.1371/journal.pdig.0000062>)
+
+## Step 1: Prepare training, validation, and test datasets
+
+- Same split-sample set-up as in .
+
+```{r}
+library(AutoScore)
+dim(dat)
+summary(dat)
+set.seed(1234)
+out_split <- split_data(data = dat, ratio = c(7, 1, 2))
+unlist(lapply(out_split, nrow))
+train_lab_test <- out_split$train_set %>% select(Pulse:SODIUM)
+train_lab_test_median <- apply(train_lab_test, 2, function(x) median(x, na.rm = TRUE))
+out_split <- lapply(out_split, function(dat) {
+  for (nm in names(train_lab_test)) {
+    dat[, nm] <- ifelse(is.na(dat[, nm]), train_lab_test_median[nm], dat[, nm])
+  }
+  dat
+})
+
+train_set <- out_split$train_set
+validation_set <- out_split$validation_set
+test_set <- out_split$test_set
+```
+
+```{r}
+dat_type <- unlist(lapply(dat, class))
+dat_cat <- names(dat_type)[which(dat_type == "factor")]
+paste0("'", paste(setdiff(dat_cat, "label"), collapse = "','"), "'")
+```
+
+```{r, eval=FALSE}
+if (!dir.exists(protected_fdr)) dir.create(protected_fdr)
+write.csv(train_set, file = file.path(protected_fdr, "train_set.csv"), 
+          row.names = FALSE)
+write.csv(validation_set[1:3500, ], 
+          file = file.path(protected_fdr, "validation_set.csv"), 
+          row.names = FALSE)
+```
+
+## Step 2: Variable ranking from ShapleyVIC analysis of nearly optimal models
+
+### Python workflow
+
+All variables are continuous.
+
+```{python, eval=FALSE}
+import os
+import pandas as pd
+output_dir = protected_fdr
+dat_train = pd.read_csv(os.path.join(output_dir, 'train_set.csv'))
+dat_expl = pd.read_csv(os.path.join(output_dir, 'validation_set.csv'))
+
+y_name = 'label'
+from ShapleyVIC import model
+model_object = model.models(
+    x=dat_train.drop(columns=[y_name]), y=dat_train[y_name], 
+    outcome_type="binary", output_dir=output_dir
+)
+```
+
+```{python, eval=FALSE}
+u1, u2 = model_object.init_hyper_params(m=200)
+(u1, u2)
+```
+
+```{python, eval=FALSE}
+model_object.draw_models(u1=u1, u2=u2, m=800, n_final=250, random_state=1234)
+model_object.models_plot
+```
+
+```{python, eval=FALSE}
+from ShapleyVIC import compute
+m_svic = compute.compute_shapley_vic(
+    model_obj=model_object, 
+    x_expl=dat_expl.drop(columns=[y_name]), y_expl=dat_expl[y_name], 
+    n_cores=7, # running on a computer with 8 cores
+    threshold=0.05
+)
+```
+
+### R workflow
+
+```{r}
+library(ShapleyVIC)
+model_object <- compile_shapley_vic(
+  output_dir = protected_fdr, outcome_type = "binary"
+)
+```
+
+```{r}
+plot(model_object)
+```
+
+## Step 3: Model development using ShapleyVIC-based ranking and AutoScore workflow
+
+### Prepare variable ranking list for AutoScore
+
+```{r}
+ranking <- rank_variables(model_object, summarise = TRUE, as_vector = TRUE)
+ranking
+```
+
+### Select the best model with parsimony plot (AutoScore Modules 2+3+4)
+
+- Parsimony plot from ShapleyVIC-based variable ranking is smoother than that
+
+```{r}
+AUC <- AutoScore_parsimony(
+  train_set = train_set, validation_set = validation_set, 
+  rank = ranking, max_score = 100, n_min = 1, n_max = length(ranking)
+)
+```
+
+A feasible choice is to select the top 6 variables, 
+`r "toString(names(ranking)[1:6])"`, resulting in the same model as developed in 
+. 
+
+```{r, fig.width=5, fig.height=5}
+cut_vec <- AutoScore_weighting(
+  train_set = train_set, validation_set = validation_set, 
+  final_variables = names(ranking)[1:6], max_score = 100
+)
+```
+
+Users can follow detailed steps in for subsequent
+model fine-tuning and evaluation.

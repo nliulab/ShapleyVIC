@@ -1,0 +1,70 @@
+/* 
+https://quarto.org/docs/output-formats/page-layout.html 
+https://quarto.org/docs/authoring/article-layout.html
+
+@media(min-width: 1000px) {
+#quarto-content {
+  margin-left: -250px;
+}
+
+.column-body{
+  width: 1000px;
+}
+
+#quarto-margin-sidebar {
+  margin-left: 250px;
+  width: 250px;
+}
+}
+*/
+
+/* to use numbered section in secondary toc (right margin) */
+.sidebar nav[role=doc-toc] .header-section-number {
+  display: inline;
+}
+
+/* special font style for AutoScore modules */
+.autoscore-module {
+  font-style: italic;
+  color: grey;
+}
+
+/* increase indent for last level in toc of index chapter */
+.sidebar nav[role=doc-toc] ul>li>ul>li>ul>li>a {
+    padding-left: 3em;
+    font-weight: normal;
+}
+
+/* bold 1st and 2nd toc items within each chapter */
+.sidebar nav[role=doc-toc] ul>li>ul>li>a {
+    padding-left: 2em;
+    font-weight: normal;
+}
+
+.sidebar nav[role=doc-toc] ul>ul>a {
+    font-weight: bold;
+}
+
+.sidebar nav[role=doc-toc] ul>li>a {
+    font-weight: bold;
+}
+
+#toc-title {
+  font-weight: bold;
+}
+
+/* have unnumbered h3 header in numbered chapters */
+.p-h3 {
+  font-size: calc(1.275rem + 0.3vw);
+}
+
+/* reduce table font size */
+table, .table{
+  font-size: 12pt;
+}
+
+/* enlarge github icon next to book title 
+.sidebar-navigation .sidebar-tool {
+  font-size: 1.5rem;
+}
+*/

@@ -1,0 +1,24 @@
+# Data requirements
+
+## General requirements
+
+- Currently ShapleyVIC only applies to binary outcomes.
+- Code binary outcomes as 0/1.
+- No space or special characters (e.g., `[`, `]`, `(`, `)`, `,`) in variable 
+names. Replace them using `_`.
+- Variable centering/standardization is *not required*.
+
+## Missing values and sparsity
+
+- Handle missing entries appropriately before applying ShapleyVIC. Missing entry 
+is not allowed.
+- Check data distribution and handle data sparsity before applying ShapleyVIC. 
+Data sparsity may increase run time and lead to unstable results.
+
+## Additional pre-processing for high-dimensional data
+
+- Although theoretically permissible, it is not advisable to apply ShapleyVIC 
+to data with a large number of variables.
+- Screen out variables with low importance (e.g., based on univariable or 
+multivariable analysis p-values) to reduce dimension (e.g., to <50 variables) 
+before applying ShapleyVIC.
