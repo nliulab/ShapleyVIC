@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ShapleyVIC",
-    version="2.0.0",
+    version="1.1.0",
     author="Yilin Ning, Chenglin Niu, Mingxuan Liu",
     author_email="yilin.ning@duke-nus.edu.sg",
     description="ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning",

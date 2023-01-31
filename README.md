@@ -42,8 +42,6 @@ variable importance), ShapleyVIC seamlessly complements the widely
 adopted SHAP assessments of a single final model to avoid biased
 inference.
 
-> ### Please visit our [bookdown page](https://nliulab.github.io/ShapleyVIC/) for a full tutorial on ShapleyVIC usage.
-
 <div class="figure" style="text-align: center">
 
 <img src="figures/graphical_abstract.jpg" width="70%"/>
@@ -51,6 +49,8 @@ inference.
 </div>
 
 ## Usage
+
+> ### Please visit our [bookdown page](https://nliulab.github.io/ShapleyVIC/) for a full tutorial on ShapleyVIC usage.
 
 ShapleyVIC analysis of variable importance consists of 3 general steps:
 
@@ -85,18 +85,22 @@ to generate summary statistics and visualizations for inference.
 Execute the following command in Terminal/Command Prompt to install the
 Python library from GitHub:
 
-``` bash
-# Linux/macOS: 
-pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
+- Linux/macOS:
 
-# Windows:
+``` bash
+pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
+```
+
+- Windows:
+
+``` bash
 python.exe -m pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
 ```
 
-- *ShapleyVIC uses [a modified version of the SAGE library (version
-  0.0.4b1)](https://github.com/nyilin/sage), which avoids occasional
-  stack overflow problems on Windows but does not affect variable
-  importance evaluation.*
+*ShapleyVIC uses [a modified version of the SAGE library (version
+0.0.4b1)](https://github.com/nyilin/sage), which avoids occasional stack
+overflow problems on Windows but does not affect variable importance
+evaluation.*
 
 ### R package
 
@@ -120,7 +124,7 @@ devtools::install_github("nliulab/ShapleyVIC/r")
 - Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R,
   Liu N. [Shapley variable importance cloud for interpretable machine
   learning](https://doi.org/10.1016/j.patter.2022.100452). *Patterns*
-  2022
+  2022; 3: 100452.
 
 ### Method extension
 
@@ -129,7 +133,7 @@ devtools::install_github("nliulab/ShapleyVIC/r")
   scores: An application for predicting early mortality or unplanned
   readmission in a retrospective cohort
   study](https://doi.org/10.1371/journal.pdig.0000062). *PLOS Digit
-  Health* 1(6): e0000062.
+  Health* 2022; 1(6): e0000062.
 
 ## Contact
 
