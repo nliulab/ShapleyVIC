@@ -1,1 +1,137 @@
-new readme
+ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
+Learning
+================
+
+- <a
+  href="#shapleyvic-shapley-variable-importance-cloud-for-interpretable-machine-learning"
+  id="toc-shapleyvic-shapley-variable-importance-cloud-for-interpretable-machine-learning">ShapleyVIC:
+  Shapley Variable Importance Cloud for Interpretable Machine Learning</a>
+- <a href="#shapleyvic-introduction"
+  id="toc-shapleyvic-introduction">ShapleyVIC Introduction</a>
+  - <a href="#usage" id="toc-usage">Usage</a>
+  - <a href="#installation" id="toc-installation">Installation</a>
+    - <a href="#python-library" id="toc-python-library">Python library</a>
+    - <a href="#r-package" id="toc-r-package">R package</a>
+  - <a href="#citation" id="toc-citation">Citation</a>
+    - <a href="#core-paper" id="toc-core-paper">Core paper</a>
+    - <a href="#method-extension" id="toc-method-extension">Method
+      extension</a>
+  - <a href="#contact" id="toc-contact">Contact</a>
+
+<!-- badges: start -->
+
+[![](https://img.shields.io/badge/doi-j.patter.2022.100452-yellow.svg)](https://doi.org/10.1016/j.patter.2022.100452)
+<!-- badges: end -->
+
+# ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning
+
+> ### ShapleyVIC is now implemented by combining a Python library and an R package. Previous version of the R package is archived in `Historical version` subdirectory.
+
+# ShapleyVIC Introduction
+
+Variable importance assessment is important for interpreting machine
+learning models. Current practice in interpretable machine learning
+applications focuses on explaining the final models that optimize
+predictive performance. However, this does not fully address practical
+needs, where researchers are willing to consider models that are “good
+enough” but are easier to understand or implement. Shapley variable
+importance cloud (ShapleyVIC) fills this gap by extending current method
+to a set of “good models” for comprehensive and robust assessments.
+Building on a common theoretical basis (i.e., Shapley values for
+variable importance), ShapleyVIC seamlessly complements the widely
+adopted SHAP assessments of a single final model to avoid biased
+inference.
+
+> ### Please visit our [bookdown page](https://nliulab.github.io/ShapleyVIC/) for a full tutorial on ShapleyVIC usage.
+
+<div class="figure" style="text-align: center">
+
+<img src="figures/graphical_abstract.jpg" width="70%"/>
+
+</div>
+
+## Usage
+
+ShapleyVIC analysis of variable importance consists of 3 general steps:
+
+1.  Training an optimal prediction model (e.g., a logistic regression
+    model).
+2.  Generating a reasonable number of (e.g., 350) nearly optimal models
+    of the same model class (e.g., logistic regression).
+3.  Evaluate Shapley-based variable importance from each nearly optimal
+    model and pool information for inference.
+
+We provide functions to visualize ShapleyVIC values to facilitate
+interpretation, and to generate ensemble variable ranking to use with
+the [AutoScore framework](https://nliulab.github.io/AutoScore/) to
+develop interpretable clinical risk scores.
+
+## Installation
+
+The ShapleyVIC framework is now implemented using a [**Python
+library**](python) that trains the optimal model, generates nearly
+optimal models and evaluate Shapley-based variable importance from such
+models, and an [**R package**](r) that pools information across models
+to generate summary statistics and visualizations for inference.
+
+### Python library
+
+- **Required:** [Python](https://www.python.org/downloads/) version 3.6
+  or higher.
+  - ***Recommended:*** latest stable release of Python 3.9 or 3.10.
+- **Required:** latest version of
+  [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+
+Execute the following command in Terminal/Command Prompt to install the
+Python library from GitHub:
+
+``` bash
+# Linux/macOS: 
+pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
+
+# Windows:
+python.exe -m pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
+```
+
+- *ShapleyVIC uses [a modified version of the SAGE library (version
+  0.0.4b1)](https://github.com/nyilin/sage), which avoids occasional
+  stack overflow problems on Windows but does not affect variable
+  importance evaluation.*
+
+### R package
+
+- **Required:** [R](https://cloud.r-project.org/) version 3.5.0 or
+  higher.
+  - ***Recommended:*** use latest version of R with
+    [RStudio](https://www.rstudio.com/products/rstudio/download/).
+
+Execute the following command in R/RStudio to install the R package from
+GitHub:
+
+``` r
+if (!require("devtools", quietly = TRUE)) install.packages("devtools")
+devtools::install_github("nliulab/ShapleyVIC/r")
+```
+
+## Citation
+
+### Core paper
+
+- Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R,
+  Liu N. [Shapley variable importance cloud for interpretable machine
+  learning](https://doi.org/10.1016/j.patter.2022.100452). *Patterns*
+  2022
+
+### Method extension
+
+- Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. [A novel
+  interpretable machine learning system to generate clinical risk
+  scores: An application for predicting early mortality or unplanned
+  readmission in a retrospective cohort
+  study](https://doi.org/10.1371/journal.pdig.0000062). *PLOS Digit
+  Health* 1(6): e0000062.
+
+## Contact
+
+- Yilin Ning (Email: <yilin.ning@duke-nus.edu.sg>)
+- Nan Liu (Email: <liu.nan@duke-nus.edu.sg>)
