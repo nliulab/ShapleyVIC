@@ -183,7 +183,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./autoscore_shapleyvic_reprod.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC: A Reproducible Example</span></a>
+  <a href="./autoscore_shapleyvic_reprod.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC Reproducible Example</span></a>
   </div>
 </li>
     </ul>
@@ -299,7 +299,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li>Load data and set up input information.</li>
 </ul>
-<div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-6_fdcf12fd9f11abab285506857655d1aa">
+<p>Data used in this analysis is sensitive, therefore we do not save training data to the output folder to avoid any potential data security issue.</p>
+<div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-6_2c73570a7efe70741c375f799575ddb2">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"score_output"</span></span>
@@ -314,8 +315,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> model</span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>model_object <span class="op">=</span> model.models(</span>
 <span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>dat_train.drop(columns<span class="op">=</span>[y_name]), y<span class="op">=</span>dat_train[y_name], </span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    x_names_cat<span class="op">=</span>x_names_cat, outcome_type<span class="op">=</span><span class="st">"binary"</span>, output_dir<span class="op">=</span>output_dir</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    x_names_cat<span class="op">=</span>x_names_cat, outcome_type<span class="op">=</span><span class="st">"binary"</span>, output_dir<span class="op">=</span>output_dir,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    save_data<span class="op">=</span><span class="va">False</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>Draw 350 nearly optimal models.</li>
@@ -343,8 +345,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 data-number="3.3.1" class="anchored" data-anchor-id="rank-variables-using-shapleyvic"><span class="header-section-number">3.3.1</span> Rank variables using ShapleyVIC</h3>
 <ul>
 <li>Compile ShapleyVIC output.</li>
+<li>Since data was not saved in the Python workflow, we explicitly specify it in the R analysis.</li>
+<li>Explicitly specify names of categorical variables, identical to those specified in the Python workflow.</li>
 </ul>
-<div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-9_347d70a90bf867f4e0e7e88bc25499a4">
+<div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-9_d4d7ed1c8cb3026b65fa889eb3e663e4">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>output_dir <span class="ot">&lt;-</span> <span class="st">"score_output"</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>x_names_display <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Age"</span>, <span class="st">"Gender"</span>, <span class="st">"Race"</span>, <span class="st">"ED LOS"</span>, <span class="st">"ED triage"</span>, </span>
@@ -358,17 +362,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Diabetes"</span>, <span class="st">"Diabetes with complications"</span>, <span class="st">"Paralysis"</span>, <span class="st">"Renal"</span>, <span class="st">"Cancer"</span>, </span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Severe liver disease"</span>, <span class="st">"Metastatic cancer"</span>, <span class="st">"Admission type"</span></span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ShapleyVIC)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>model_object <span class="ot">&lt;-</span> <span class="fu">compile_shapley_vic</span>(</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_dir =</span> output_dir, <span class="at">outcome_type =</span> <span class="st">"binary"</span>, </span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names_cat =</span> <span class="fu">c</span>(</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Gender'</span>,<span class="st">'Race'</span>,<span class="st">'Triage_Class_Code'</span>,<span class="st">'DayofWeek'</span>,<span class="st">'MI'</span>,<span class="st">'CHF'</span>,<span class="st">'PVD'</span>,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Stroke'</span>,<span class="st">'Dementia'</span>,<span class="st">'Pulmonary'</span>,<span class="st">'Rheumatic'</span>,<span class="st">'PUD'</span>,<span class="st">'LiverMild'</span>,<span class="st">'Diabetes'</span>,</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">'DMcx'</span>,<span class="st">'Paralysis'</span>,<span class="st">'Renal'</span>,<span class="st">'Cancer'</span>,<span class="st">'LiverSevere'</span>,<span class="st">'Mets'</span>,<span class="st">'admit_cat'</span>,</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">'resuscitation'</span>,<span class="st">'VENTILATION'</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names =</span> x_names_display</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>y_name <span class="ot">&lt;-</span> <span class="st">"label"</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>x_names <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">names</span>(train_set), y_name)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ShapleyVIC)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>model_object <span class="ot">&lt;-</span> <span class="fu">compile_shapley_vic</span>(</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_dir =</span> output_dir, <span class="at">outcome_type =</span> <span class="st">"binary"</span>, </span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> train_set[, x_names], <span class="at">y =</span> train_set<span class="sc">$</span>label,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names_cat =</span> <span class="fu">c</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Gender'</span>,<span class="st">'Race'</span>,<span class="st">'Triage_Class_Code'</span>,<span class="st">'DayofWeek'</span>,<span class="st">'MI'</span>,<span class="st">'CHF'</span>,<span class="st">'PVD'</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Stroke'</span>,<span class="st">'Dementia'</span>,<span class="st">'Pulmonary'</span>,<span class="st">'Rheumatic'</span>,<span class="st">'PUD'</span>,<span class="st">'LiverMild'</span>,<span class="st">'Diabetes'</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'DMcx'</span>,<span class="st">'Paralysis'</span>,<span class="st">'Renal'</span>,<span class="st">'Cancer'</span>,<span class="st">'LiverSevere'</span>,<span class="st">'Mets'</span>,<span class="st">'admit_cat'</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">'resuscitation'</span>,<span class="st">'VENTILATION'</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names =</span> x_names_display</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-10_5cca937cea372e579598b9bea0411d83">
 
@@ -735,7 +742,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
   <div class="nav-page nav-page-next">
       <a href="./autoscore_shapleyvic_reprod.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC: A Reproducible Example</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC Reproducible Example</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

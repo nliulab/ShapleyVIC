@@ -110,6 +110,9 @@ model.
 encoded as 0/1.
 - `output_dir`: the directory to save key outputs to. Will be used as input in 
 the subsequent R workflow.
+- `save_data`: whether to save `x` and `y` to `output_dir` (default is to save). 
+If not, `x` and `y` must be supplied separately in subsequent R analysis.
+    - See [Chapter 2](autoscore_shapleyvic.qmd) for an example with `save_data=False`.
 
 ```{python, eval=FALSE}
 # Specify the name of outcome, which is 'y' in this example:
@@ -231,6 +234,9 @@ adjusted based on variable colinearity to derive final ShapleyVIC values.
 
 - `output_dir`: output folder generated from the Python workflow.
 - `outcome_type`: type of outcome, as specified in the Python workflow.
+- `x` and `y`: training data specified in the Python workflow, required if 
+`save_data=False` was specified when setting up `model.models(...)` in Python.
+    - See [Chapter 2](autoscore_shapleyvic.qmd) for an example with `save_data=False`.
 - `x_names_cat`: names of categorical variables, as specified in the Python 
 workflow. Used when assessing variable colinearity from the training set. 
 Optional for binary variables coded as 0/1.

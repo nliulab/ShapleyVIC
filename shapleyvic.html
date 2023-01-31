@@ -184,7 +184,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./autoscore_shapleyvic_reprod.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC: A Reproducible Example</span></a>
+  <a href="./autoscore_shapleyvic_reprod.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC Reproducible Example</span></a>
   </div>
 </li>
     </ul>
@@ -418,6 +418,10 @@ General suggestions on the size of explanation set
 <li><code>outcome_type</code>: type of the outcome (currently only supports binary outcomes).</li>
 <li><code>x_names_cat</code>: names of categorical predictors. Optional for binary predictors encoded as 0/1.</li>
 <li><code>output_dir</code>: the directory to save key outputs to. Will be used as input in the subsequent R workflow.</li>
+<li><code>save_data</code>: whether to save <code>x</code> and <code>y</code> to <code>output_dir</code> (default is to save). If not, <code>x</code> and <code>y</code> must be supplied separately in subsequent R analysis.
+<ul>
+<li>See <a href="./autoscore_shapleyvic.html">Chapter 2</a> for an example with <code>save_data=False</code>.</li>
+</ul></li>
 </ul>
 <div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-6_26c467fa3dee88d643309af8b5402a39">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify the name of outcome, which is 'y' in this example:</span></span>
@@ -692,6 +696,10 @@ Note
 <ul>
 <li><code>output_dir</code>: output folder generated from the Python workflow.</li>
 <li><code>outcome_type</code>: type of outcome, as specified in the Python workflow.</li>
+<li><code>x</code> and <code>y</code>: training data specified in the Python workflow, required if <code>save_data=False</code> was specified when setting up <code>model.models(...)</code> in Python.
+<ul>
+<li>See <a href="./autoscore_shapleyvic.html">Chapter 2</a> for an example with <code>save_data=False</code>.</li>
+</ul></li>
 <li><code>x_names_cat</code>: names of categorical variables, as specified in the Python workflow. Used when assessing variable colinearity from the training set. Optional for binary variables coded as 0/1.</li>
 <li><code>x_names_display</code>: variable names to use in summary statistics and visualizations. If not provided, column names in the training set will be used.</li>
 </ul>

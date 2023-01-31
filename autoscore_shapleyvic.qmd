@@ -96,6 +96,9 @@ write.csv(validation_set[1:3500, ],
 
 - Load data and set up input information.
 
+Data used in this analysis is sensitive, therefore we do not save training data 
+to the output folder to avoid any potential data security issue.
+
 ```{python, eval=FALSE}
 import os
 import pandas as pd
@@ -111,7 +114,8 @@ x_names_cat = ['Gender','Race','Triage_Class_Code','DayofWeek','MI','CHF','PVD',
 from ShapleyVIC import model
 model_object = model.models(
     x=dat_train.drop(columns=[y_name]), y=dat_train[y_name], 
-    x_names_cat=x_names_cat, outcome_type="binary", output_dir=output_dir
+    x_names_cat=x_names_cat, outcome_type="binary", output_dir=output_dir,
+    save_data=False
 )
 ```
 
@@ -140,6 +144,10 @@ m_svic = compute.compute_shapley_vic(
 ### Rank variables using ShapleyVIC
 
 - Compile ShapleyVIC output.
+- Since data was not saved in the Python workflow, we explicitly specify it in 
+the R analysis.
+- Explicitly specify names of categorical variables, identical to those 
+specified in the Python workflow.
 
 ```{r}
 output_dir <- "score_output"
@@ -155,9 +163,12 @@ x_names_display <- c(
   "Diabetes", "Diabetes with complications", "Paralysis", "Renal", "Cancer", 
   "Severe liver disease", "Metastatic cancer", "Admission type"
 )
+y_name <- "label"
+x_names <- setdiff(names(train_set), y_name)
 library(ShapleyVIC)
 model_object <- compile_shapley_vic(
   output_dir = output_dir, outcome_type = "binary", 
+  x = train_set[, x_names], y = train_set$label,
   x_names_cat = c(
     'Gender','Race','Triage_Class_Code','DayofWeek','MI','CHF','PVD',
     'Stroke','Dementia','Pulmonary','Rheumatic','PUD','LiverMild','Diabetes',

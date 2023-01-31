@@ -1,4 +1,4 @@
-# AutoScore-ShapleyVIC: A Reproducible Example
+# AutoScore-ShapleyVIC Reproducible Example
 
 ```{r, include=FALSE}
 knitr::opts_chunk$set(cache = TRUE)
