@@ -2,10 +2,6 @@ ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
 Learning
 ================
 
-- <a
-  href="#shapleyvic-shapley-variable-importance-cloud-for-interpretable-machine-learning"
-  id="toc-shapleyvic-shapley-variable-importance-cloud-for-interpretable-machine-learning">ShapleyVIC:
-  Shapley Variable Importance Cloud for Interpretable Machine Learning</a>
 - <a href="#shapleyvic-introduction"
   id="toc-shapleyvic-introduction">ShapleyVIC Introduction</a>
   - <a href="#usage" id="toc-usage">Usage</a>
@@ -23,7 +19,6 @@ Learning
 [![](https://img.shields.io/badge/doi-j.patter.2022.100452-yellow.svg)](https://doi.org/10.1016/j.patter.2022.100452)
 <!-- badges: end -->
 
-# ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning
 
 > ### ShapleyVIC is now implemented by combining a Python library and an R package. Previous version of the R package is archived in `Historical version` subdirectory.
 
