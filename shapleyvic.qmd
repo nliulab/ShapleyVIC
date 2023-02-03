@@ -56,6 +56,11 @@ to compute ShapleyVIC values.
 - Otherwise, users may use the full dataset to train models and compute 
 ShapleyVIC values.
 
+:::callout-important
+- *As detailed in [Chapter 1](data.qmd), check for and handle data issues before applying ShapleyVIC.*
+- *This demo will show impact of data sparsity on ShapleyVIC results.*
+:::
+
 ::: callout-important
 ## General suggestions on the size of explanation set
 
@@ -68,7 +73,20 @@ In the experiment, we used 10% of the full dataset as explanation set:
 
 ::: {.panel-tabset}
 
-#### Random split
+#### Use the `train_test` indicator available
+
+```{python, eval=FALSE}
+dat_train = compas.loc[compas['train_test']=='train']
+# Drop the indicator column after using it to split data:
+dat_train = dat_train.drop(columns=['train_test'])
+dat_train.reset_index(drop=True, inplace=True)
+
+dat_expl = compas.loc[compas['train_test']=='test']
+dat_expl = dat_expl.drop(columns=['train_test'])
+dat_expl.reset_index(drop=True, inplace=True)
+```
+
+#### Random split for general cases
 
 ```{python, eval=FALSE}
 # Drop the column 'train_test' that indicates set membership in example data:
@@ -82,19 +100,6 @@ dat_train = compas.iloc[i_train, :]
 dat_train.reset_index(drop=True, inplace=True)
 
 dat_expl = compas.iloc[i_expl, :]
-dat_expl.reset_index(drop=True, inplace=True)
-```
-
-#### Use the `train_test` indicator
-
-```{python, eval=FALSE}
-dat_train = compas.loc[compas['train_test']=='train']
-# Drop the indicator column after using it to split data:
-dat_train = dat_train.drop(columns=['train_test'])
-dat_train.reset_index(drop=True, inplace=True)
-
-dat_expl = compas.loc[compas['train_test']=='test']
-dat_expl = dat_expl.drop(columns=['train_test'])
 dat_expl.reset_index(drop=True, inplace=True)
 ```
 
@@ -112,7 +117,13 @@ encoded as 0/1.
 the subsequent R workflow.
 - `save_data`: whether to save `x` and `y` to `output_dir` (default is to save). 
 If not, `x` and `y` must be supplied separately in subsequent R analysis.
-    - See [Chapter 2](autoscore_shapleyvic.qmd) for an example with `save_data=False`.
+
+::: {.panel-tabset}
+
+#### Save data
+
+Default option is to save input data `x` and `y`, so that they are not needed as 
+input in the subsequent R workflow.
 
 ```{python, eval=FALSE}
 # Specify the name of outcome, which is 'y' in this example:
@@ -122,11 +133,32 @@ model_object = model.models(
     x=dat_train.drop(columns=[y_name]), y=dat_train[y_name], 
     outcome_type="binary", 
     x_names_cat=['age','race','prior','gender','juvenilecrime','currentcharge'],
-    output_dir="compas_output"
+    output_dir="compas_output", save_data=True
 )
 # To display the optimal logistic regression trained:
 model_object.model_optim.summary().tables[1]
 ```
+
+#### Do not save data
+
+Specify `save_data=False` to avoid saving `x` and `y` to output folder. 
+See [Chapter 3](autoscore_shapleyvic.qmd) for another example.
+
+```{python, eval=FALSE}
+# Specify the name of outcome, which is 'y' in this example:
+y_name = 'y'
+from ShapleyVIC import model
+model_object = model.models(
+    x=dat_train.drop(columns=[y_name]), y=dat_train[y_name], 
+    outcome_type="binary", 
+    x_names_cat=['age','race','prior','gender','juvenilecrime','currentcharge'],
+    output_dir="compas_output", save_data=False
+)
+# To display the optimal logistic regression trained:
+model_object.model_optim.summary().tables[1]
+```
+
+:::
 
 |               | coef    | std err | z       | P     | \[0.025 | 0.975\] |
 |---------------|---------|---------|---------|-------|---------|---------|
@@ -236,13 +268,16 @@ adjusted based on variable colinearity to derive final ShapleyVIC values.
 - `outcome_type`: type of outcome, as specified in the Python workflow.
 - `x` and `y`: training data specified in the Python workflow, required if 
 `save_data=False` was specified when setting up `model.models(...)` in Python.
-    - See [Chapter 2](autoscore_shapleyvic.qmd) for an example with `save_data=False`.
 - `x_names_cat`: names of categorical variables, as specified in the Python 
 workflow. Used when assessing variable colinearity from the training set. 
 Optional for binary variables coded as 0/1.
 - `x_names_display`: variable names to use in summary statistics and 
 visualizations. If not provided, column names in the training set will be used.
     
+::: {.panel-tabset}
+
+#### Data saved in Python workflow
+
 ```{r}
 library(ShapleyVIC)
 model_object <- compile_shapley_vic(
@@ -252,6 +287,34 @@ model_object <- compile_shapley_vic(
               "Juvenile criminal history", "Current charge")
 )
 ```
+
+#### Data not saved in Python workflow
+
+When training data was not saved in the Python workflow, they must be supplied 
+as input (`x` and `y`) in this step. See [Chapter 3](autoscore_shapleyvic.qmd) for 
+another example.
+
+```{r}
+# Prepare training data the same way as in Python workflow:
+library(ShapleyVIC)
+suppressPackageStartupMessages(library(dplyr))
+data("df_compas")
+# Use the `train_test` indicator to filter out training data used in Python workflow:
+df_train <- df_compas %>% filter(train_test == "train") %>% 
+  select(-train_test) %>% as.data.frame()
+y_name <- "y"
+x_names <- setdiff(names(df_train), y_name)
+# Supply x and y when compiling results from Python workflow:
+model_object <- compile_shapley_vic(
+  output_dir = "compas_output", outcome_type = "binary", 
+  x = df_train[, x_names], y = df_train[, y_name],
+  x_names_cat = c('age','race','prior','gender','juvenilecrime','currentcharge'),
+  x_names = c("Age", "Race", "Prior criminal history", "Gender", 
+              "Juvenile criminal history", "Current charge")
+)
+```
+
+:::
 
 ### Visualize overall variable importance
 

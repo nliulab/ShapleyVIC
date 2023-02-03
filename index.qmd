@@ -56,12 +56,16 @@ or higher.
 Execute the following command in Terminal/Command Prompt to install the Python
 library from GitHub:
 
-```{bash, eval=FALSE}
-# Linux/macOS: 
-pip install git+"https://github.com/nyilin/ShapleyVIC-Python#egg=ShapleyVIC&subdirectory=python"
+- Linux/macOS: 
 
-# Windows:
-python.exe -m pip install git+"https://github.com/nyilin/ShapleyVIC-Python#egg=ShapleyVIC&subdirectory=python"
+```{bash, eval=FALSE}
+pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
+```
+
+- Windows:
+
+```{bash, eval=FALSE}
+python.exe -m pip install git+"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&subdirectory=python"
 ```
 
 ::: callout-note
@@ -85,11 +89,11 @@ devtools::install_github("nliulab/ShapleyVIC/r")
 
 ### Core paper
 
-- Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N. [Shapley variable importance cloud for interpretable machine learning](https://doi.org/10.1016/j.patter.2022.100452). *Patterns* 2022
+- Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N. [Shapley variable importance cloud for interpretable machine learning](https://doi.org/10.1016/j.patter.2022.100452). *Patterns* 2022; 3: 100452.
 
 ### Method extension
 
-- Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. [A novel interpretable machine learning system to generate clinical risk scores: An application for predicting early mortality or unplanned readmission in a retrospective cohort study](https://doi.org/10.1371/journal.pdig.0000062). *PLOS Digit Health* 1(6): e0000062.
+- Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. [A novel interpretable machine learning system to generate clinical risk scores: An application for predicting early mortality or unplanned readmission in a retrospective cohort study](https://doi.org/10.1371/journal.pdig.0000062). *PLOS Digit Health* 2022; 1(6): e0000062.
 
 ## Contact
 

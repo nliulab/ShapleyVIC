@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Yilin Ning, Chenglin Niu, Mingxuan Li, Siqi Li, Nan Liu">
-<meta name="dcterms.date" content="2023-01-31">
+<meta name="dcterms.date" content="2023-02-03">
 
 <title>ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning</title>
 <style>
@@ -236,7 +236,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2023-01-31</p>
+      <p class="date">2023-02-03</p>
     </div>
   </div>
   
@@ -276,12 +276,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><strong>Required:</strong> latest version of <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">git</a>.</li>
 </ul>
 <p>Execute the following command in Terminal/Command Prompt to install the Python library from GitHub:</p>
+<ul>
+<li>Linux/macOS:</li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Linux/macOS: </span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install git+<span class="st">"https://github.com/nyilin/ShapleyVIC-Python#egg=ShapleyVIC&amp;subdirectory=python"</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Windows:</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python.exe</span> <span class="at">-m</span> pip install git+<span class="st">"https://github.com/nyilin/ShapleyVIC-Python#egg=ShapleyVIC&amp;subdirectory=python"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install git+<span class="st">"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&amp;subdirectory=python"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Windows:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python.exe</span> <span class="at">-m</span> pip install git+<span class="st">"https://github.com/nliulab/ShapleyVIC#egg=ShapleyVIC&amp;subdirectory=python"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -309,8 +314,8 @@ Note
 </ul>
 <p>Execute the following command in R/RStudio to install the R package from GitHub:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"devtools"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">"devtools"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"nliulab/ShapleyVIC/r"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"devtools"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) <span class="fu">install.packages</span>(<span class="st">"devtools"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"nliulab/ShapleyVIC/r"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
@@ -319,13 +324,13 @@ Note
 <section id="core-paper" class="level3">
 <h3 class="anchored" data-anchor-id="core-paper">Core paper</h3>
 <ul>
-<li>Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N. <a href="https://doi.org/10.1016/j.patter.2022.100452">Shapley variable importance cloud for interpretable machine learning</a>. <em>Patterns</em> 2022</li>
+<li>Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N. <a href="https://doi.org/10.1016/j.patter.2022.100452">Shapley variable importance cloud for interpretable machine learning</a>. <em>Patterns</em> 2022; 3: 100452.</li>
 </ul>
 </section>
 <section id="method-extension" class="level3">
 <h3 class="anchored" data-anchor-id="method-extension">Method extension</h3>
 <ul>
-<li>Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. <a href="https://doi.org/10.1371/journal.pdig.0000062">A novel interpretable machine learning system to generate clinical risk scores: An application for predicting early mortality or unplanned readmission in a retrospective cohort study</a>. <em>PLOS Digit Health</em> 1(6): e0000062.</li>
+<li>Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. <a href="https://doi.org/10.1371/journal.pdig.0000062">A novel interpretable machine learning system to generate clinical risk scores: An application for predicting early mortality or unplanned readmission in a retrospective cohort study</a>. <em>PLOS Digit Health</em> 2022; 1(6): e0000062.</li>
 </ul>
 </section>
 </section>

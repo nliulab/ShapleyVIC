@@ -262,6 +262,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Use the <code>split_data()</code> function of the AutoScore package to split data into training (70%), validation (10%) and test (20%) sets for risk score development.</li>
 <li>Perform median imputation for vital signs and lab tests based on training set.</li>
 </ul>
+<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><em>As detailed in <a href="./data.html">Chapter 1</a>, handle missingness (and any other potential data issue) before applying ShapleyVIC.</em></li>
+</ul>
+</div>
+</div>
 <div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-4_151fa8ad735fbdfd62d428fe2d1e434d">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Out_split <span class="ot">&lt;-</span> <span class="fu">split_data</span>(<span class="at">data =</span> dat, <span class="at">ratio =</span> <span class="fu">c</span>(<span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
@@ -298,8 +313,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><strong>This part of the workflow is implemented in Python.</strong></p>
 <ul>
 <li>Load data and set up input information.</li>
+<li>Data used in this analysis is sensitive, therefore we do not save training data to the output folder to avoid any potential data security issue.</li>
 </ul>
-<p>Data used in this analysis is sensitive, therefore we do not save training data to the output folder to avoid any potential data security issue.</p>
 <div class="cell" data-hash="autoscore_shapleyvic_cache/html/unnamed-chunk-6_2c73570a7efe70741c375f799575ddb2">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>

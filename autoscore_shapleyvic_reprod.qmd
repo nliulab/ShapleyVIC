@@ -55,6 +55,11 @@ dim(test_set)
 - Prepare `output_dir` for ShapleyVIC, using `train_set` as training set and 
 `validation_set` as the explanation data. 
 
+:::callout-important
+- *As detailed in [Chapter 1](data.qmd), check for and handle data issues before applying ShapleyVIC.*
+- *This demo uses data as-is because it is simulated clean data.*
+:::
+
 ```{r}
 output_dir <- "mort_output"
 if (!dir.exists(output_dir)) dir.create(output_dir)

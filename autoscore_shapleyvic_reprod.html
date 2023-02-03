@@ -307,6 +307,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li>Prepare <code>output_dir</code> for ShapleyVIC, using <code>train_set</code> as training set and <code>validation_set</code> as the explanation data.</li>
 </ul>
+<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><em>As detailed in <a href="./data.html">Chapter 1</a>, check for and handle data issues before applying ShapleyVIC.</em></li>
+<li><em>This demo uses data as-is because it is simulated clean data.</em></li>
+</ul>
+</div>
+</div>
 <div class="cell" data-hash="autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-5_0ec771dddfd646a47ab1c73f4c07deb5">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>output_dir <span class="ot">&lt;-</span> <span class="st">"mort_output"</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) <span class="fu">dir.create</span>(output_dir)</span>

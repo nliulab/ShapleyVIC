@@ -364,6 +364,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <i class="callout-icon"></i>
 </div>
 <div class="callout-caption-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><em>As detailed in <a href="./data.html">Chapter 1</a>, check for and handle data issues before applying ShapleyVIC.</em></li>
+<li><em>This demo will show impact of data sparsity on ShapleyVIC results.</em></li>
+</ul>
+</div>
+</div>
+<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
 General suggestions on the size of explanation set
 </div>
 </div>
@@ -377,34 +393,34 @@ General suggestions on the size of explanation set
 </div>
 <p>In the experiment, we used 10% of the full dataset as explanation set:</p>
 <div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Random split</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Use the <code>train_test</code> indicator</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Use the <code>train_test</code> indicator available</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Random split for general cases</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-4_88f39ecb3f04b9c610d6897cd34df28e">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop the column 'train_test' that indicates set membership in example data:</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>compas <span class="op">=</span> compas.drop(columns<span class="op">=</span>[<span class="st">'train_test'</span>])</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate row indices for training and explanation sets:</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>i_train, i_expl <span class="op">=</span> train_test_split(<span class="bu">list</span>(<span class="bu">range</span>(compas.shape[<span class="dv">0</span>])), </span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    test_size<span class="op">=</span><span class="bu">int</span>(<span class="fl">0.1</span> <span class="op">*</span> compas.shape[<span class="dv">0</span>]), random_state<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> compas.iloc[i_train, :]</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>dat_train.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> compas.iloc[i_expl, :]</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>dat_expl.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-4_0efad34f442c5a834ff6386aebe86614">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> compas.loc[compas[<span class="st">'train_test'</span>]<span class="op">==</span><span class="st">'train'</span>]</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop the indicator column after using it to split data:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> dat_train.drop(columns<span class="op">=</span>[<span class="st">'train_test'</span>])</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>dat_train.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> compas.loc[compas[<span class="st">'train_test'</span>]<span class="op">==</span><span class="st">'test'</span>]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> dat_expl.drop(columns<span class="op">=</span>[<span class="st">'train_test'</span>])</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>dat_expl.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-5_89aa430ed0126f98e83ee05f2beb6402">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> compas.loc[compas[<span class="st">'train_test'</span>]<span class="op">==</span><span class="st">'train'</span>]</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop the indicator column after using it to split data:</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> dat_train.drop(columns<span class="op">=</span>[<span class="st">'train_test'</span>])</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>dat_train.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> compas.loc[compas[<span class="st">'train_test'</span>]<span class="op">==</span><span class="st">'test'</span>]</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> dat_expl.drop(columns<span class="op">=</span>[<span class="st">'train_test'</span>])</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>dat_expl.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-5_d31c38eb91a20b7b8020ea08b0495795">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop the column 'train_test' that indicates set membership in example data:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>compas <span class="op">=</span> compas.drop(columns<span class="op">=</span>[<span class="st">'train_test'</span>])</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate row indices for training and explanation sets:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>i_train, i_expl <span class="op">=</span> train_test_split(<span class="bu">list</span>(<span class="bu">range</span>(compas.shape[<span class="dv">0</span>])), </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    test_size<span class="op">=</span><span class="bu">int</span>(<span class="fl">0.1</span> <span class="op">*</span> compas.shape[<span class="dv">0</span>]), random_state<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> compas.iloc[i_train, :]</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>dat_train.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> compas.iloc[i_expl, :]</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>dat_expl.reset_index(drop<span class="op">=</span><span class="va">True</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -418,12 +434,14 @@ General suggestions on the size of explanation set
 <li><code>outcome_type</code>: type of the outcome (currently only supports binary outcomes).</li>
 <li><code>x_names_cat</code>: names of categorical predictors. Optional for binary predictors encoded as 0/1.</li>
 <li><code>output_dir</code>: the directory to save key outputs to. Will be used as input in the subsequent R workflow.</li>
-<li><code>save_data</code>: whether to save <code>x</code> and <code>y</code> to <code>output_dir</code> (default is to save). If not, <code>x</code> and <code>y</code> must be supplied separately in subsequent R analysis.
-<ul>
-<li>See <a href="./autoscore_shapleyvic.html">Chapter 2</a> for an example with <code>save_data=False</code>.</li>
-</ul></li>
+<li><code>save_data</code>: whether to save <code>x</code> and <code>y</code> to <code>output_dir</code> (default is to save). If not, <code>x</code> and <code>y</code> must be supplied separately in subsequent R analysis.</li>
 </ul>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-6_26c467fa3dee88d643309af8b5402a39">
+<div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Save data</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Do not save data</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<p>Default option is to save input data <code>x</code> and <code>y</code>, so that they are not needed as input in the subsequent R workflow.</p>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-6_647a3d665f82d34c3c895d947a1b1aec">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify the name of outcome, which is 'y' in this example:</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>y_name <span class="op">=</span> <span class="st">'y'</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> model</span>
@@ -431,10 +449,29 @@ General suggestions on the size of explanation set
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>dat_train.drop(columns<span class="op">=</span>[y_name]), y<span class="op">=</span>dat_train[y_name], </span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    outcome_type<span class="op">=</span><span class="st">"binary"</span>, </span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    x_names_cat<span class="op">=</span>[<span class="st">'age'</span>,<span class="st">'race'</span>,<span class="st">'prior'</span>,<span class="st">'gender'</span>,<span class="st">'juvenilecrime'</span>,<span class="st">'currentcharge'</span>],</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span><span class="st">"compas_output"</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span><span class="st">"compas_output"</span>, save_data<span class="op">=</span><span class="va">True</span></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># To display the optimal logistic regression trained:</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>model_object.model_optim.summary().tables[<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<p>Specify <code>save_data=False</code> to avoid saving <code>x</code> and <code>y</code> to output folder. See <a href="./autoscore_shapleyvic.html">Chapter 3</a> for another example.</p>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-7_dc829a3d779543cf6ac4efb898b1e328">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Specify the name of outcome, which is 'y' in this example:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>y_name <span class="op">=</span> <span class="st">'y'</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> model</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>model_object <span class="op">=</span> model.models(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>dat_train.drop(columns<span class="op">=</span>[y_name]), y<span class="op">=</span>dat_train[y_name], </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    outcome_type<span class="op">=</span><span class="st">"binary"</span>, </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    x_names_cat<span class="op">=</span>[<span class="st">'age'</span>,<span class="st">'race'</span>,<span class="st">'prior'</span>,<span class="st">'gender'</span>,<span class="st">'juvenilecrime'</span>,<span class="st">'currentcharge'</span>],</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span><span class="st">"compas_output"</span>, save_data<span class="op">=</span><span class="va">False</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># To display the optimal logistic regression trained:</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>model_object.model_optim.summary().tables[<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
 </div>
 <table class="table">
 <colgroup>
@@ -531,17 +568,17 @@ General suggestions on the size of explanation set
 <li><code>u1</code> and <code>u2</code> are key hyper-parameters for generating nearly optimal models, which control the sampling range of initial models to fully explore the model space.</li>
 <li>Use the following command to generate a set of reasonable values for <code>u1</code> and <code>u2</code> (using <code>m=200</code> initial models), such that approximately 70%-80% of initial models are eligible:</li>
 </ul>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-7_7ab7ce60bafa4201416b70853bf2e03e">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>u1, u2 <span class="op">=</span> model_object.init_hyper_params(m<span class="op">=</span><span class="dv">200</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>(u1, u2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-8_f981eb0b5ce7b572dea48ec34ae607c3">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>u1, u2 <span class="op">=</span> model_object.init_hyper_params(m<span class="op">=</span><span class="dv">200</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>(u1, u2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <pre><code>(0.5, 80.3125)</code></pre>
 <ul>
 <li>Use the following command to generate a final set of nearly optimal models (e.g., <code>n_final=250</code>) from 500 initial samples (<code>m=500</code>):</li>
 </ul>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-8_5ead2903c8b0ba53767cae1b106f7019">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model_object.draw_models(u1<span class="op">=</span>u1, u2<span class="op">=</span>u2, m<span class="op">=</span><span class="dv">500</span>, n_final<span class="op">=</span><span class="dv">250</span>, random_state<span class="op">=</span><span class="dv">1234</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>model_object.models_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-9_bb20d87ddbda903b54fd1f5c6c007793">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model_object.draw_models(u1<span class="op">=</span>u1, u2<span class="op">=</span>u2, m<span class="op">=</span><span class="dv">500</span>, n_final<span class="op">=</span><span class="dv">250</span>, random_state<span class="op">=</span><span class="dv">1234</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>model_object.models_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="figure" style="text-align: center">
 <p><img src="figures/output.png" width="70%"></p>
@@ -549,10 +586,10 @@ General suggestions on the size of explanation set
 <div class="figure" style="text-align: center">
 <p><img src="figures/output2.png" width="70%"></p>
 </div>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-9_fa2a19df69e39600dc2dc83437126d79">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model_object.models_near_optim.iloc[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-10_73992b72e1c51808e3bc3a28ead750ac">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>model_object.models_near_optim.iloc[:<span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-10_78e213369b65ff8240d43e2061aeeef8">
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-11_3faae73fd842e5c032ba41b756c672f1">
 <div class="cell-output-display">
 <table class="table table-sm table-striped">
 <colgroup>
@@ -658,14 +695,14 @@ General suggestions on the size of explanation set
 <li>Smaller <code>threshold</code> value may improve accuracy of uncertainty measure but notably increases run time.</li>
 </ul></li>
 </ul>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-11_736cfcbb6fd3e62f7a13c41dcb64ae86">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> compute</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>m_svic <span class="op">=</span> compute.compute_shapley_vic(</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    model_obj<span class="op">=</span>model_object, </span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    x_expl<span class="op">=</span>dat_expl.drop(columns<span class="op">=</span>[y_name]), y_expl<span class="op">=</span>dat_expl[y_name], </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    n_cores<span class="op">=</span><span class="dv">7</span>, <span class="co"># running on a MacBook Air with 8 cores</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span><span class="fl">0.05</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-12_88782455b76fbaf84916a55afa24ed00">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> compute</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>m_svic <span class="op">=</span> compute.compute_shapley_vic(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    model_obj<span class="op">=</span>model_object, </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    x_expl<span class="op">=</span>dat_expl.drop(columns<span class="op">=</span>[y_name]), y_expl<span class="op">=</span>dat_expl[y_name], </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    n_cores<span class="op">=</span><span class="dv">7</span>, <span class="co"># running on a MacBook Air with 8 cores</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span><span class="fl">0.05</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -696,21 +733,47 @@ Note
 <ul>
 <li><code>output_dir</code>: output folder generated from the Python workflow.</li>
 <li><code>outcome_type</code>: type of outcome, as specified in the Python workflow.</li>
-<li><code>x</code> and <code>y</code>: training data specified in the Python workflow, required if <code>save_data=False</code> was specified when setting up <code>model.models(...)</code> in Python.
-<ul>
-<li>See <a href="./autoscore_shapleyvic.html">Chapter 2</a> for an example with <code>save_data=False</code>.</li>
-</ul></li>
+<li><code>x</code> and <code>y</code>: training data specified in the Python workflow, required if <code>save_data=False</code> was specified when setting up <code>model.models(...)</code> in Python.</li>
 <li><code>x_names_cat</code>: names of categorical variables, as specified in the Python workflow. Used when assessing variable colinearity from the training set. Optional for binary variables coded as 0/1.</li>
 <li><code>x_names_display</code>: variable names to use in summary statistics and visualizations. If not provided, column names in the training set will be used.</li>
 </ul>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-12_48c24940754b3b5fee6ea59057fe6085">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ShapleyVIC)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>model_object <span class="ot">&lt;-</span> <span class="fu">compile_shapley_vic</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_dir =</span> <span class="st">"compas_output"</span>, <span class="at">outcome_type =</span> <span class="st">"binary"</span>, </span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names_cat =</span> <span class="fu">c</span>(<span class="st">'age'</span>,<span class="st">'race'</span>,<span class="st">'prior'</span>,<span class="st">'gender'</span>,<span class="st">'juvenilecrime'</span>,<span class="st">'currentcharge'</span>),</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names =</span> <span class="fu">c</span>(<span class="st">"Age"</span>, <span class="st">"Race"</span>, <span class="st">"Prior criminal history"</span>, <span class="st">"Gender"</span>, </span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>              <span class="st">"Juvenile criminal history"</span>, <span class="st">"Current charge"</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">Data saved in Python workflow</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Data not saved in Python workflow</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-13_e8954607b31a0fc5cd315be018f5926a">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ShapleyVIC)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>model_object <span class="ot">&lt;-</span> <span class="fu">compile_shapley_vic</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_dir =</span> <span class="st">"compas_output"</span>, <span class="at">outcome_type =</span> <span class="st">"binary"</span>, </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names_cat =</span> <span class="fu">c</span>(<span class="st">'age'</span>,<span class="st">'race'</span>,<span class="st">'prior'</span>,<span class="st">'gender'</span>,<span class="st">'juvenilecrime'</span>,<span class="st">'currentcharge'</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names =</span> <span class="fu">c</span>(<span class="st">"Age"</span>, <span class="st">"Race"</span>, <span class="st">"Prior criminal history"</span>, <span class="st">"Gender"</span>, </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>              <span class="st">"Juvenile criminal history"</span>, <span class="st">"Current charge"</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
+<p>When training data was not saved in the Python workflow, they must be supplied as input (<code>x</code> and <code>y</code>) in this step. See <a href="./autoscore_shapleyvic.html">Chapter 3</a> for another example.</p>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-14_c6d9a1efdc1ac4e71c2978aa4c3dce8e">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare training data the same way as in Python workflow:</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ShapleyVIC)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(dplyr))</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"df_compas"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Use the `train_test` indicator to filter out training data used in Python workflow:</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>df_train <span class="ot">&lt;-</span> df_compas <span class="sc">%&gt;%</span> <span class="fu">filter</span>(train_test <span class="sc">==</span> <span class="st">"train"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>train_test) <span class="sc">%&gt;%</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>y_name <span class="ot">&lt;-</span> <span class="st">"y"</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>x_names <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">names</span>(df_train), y_name)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Supply x and y when compiling results from Python workflow:</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>model_object <span class="ot">&lt;-</span> <span class="fu">compile_shapley_vic</span>(</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_dir =</span> <span class="st">"compas_output"</span>, <span class="at">outcome_type =</span> <span class="st">"binary"</span>, </span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> df_train[, x_names], <span class="at">y =</span> df_train[, y_name],</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names_cat =</span> <span class="fu">c</span>(<span class="st">'age'</span>,<span class="st">'race'</span>,<span class="st">'prior'</span>,<span class="st">'gender'</span>,<span class="st">'juvenilecrime'</span>,<span class="st">'currentcharge'</span>),</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">x_names =</span> <span class="fu">c</span>(<span class="st">"Age"</span>, <span class="st">"Race"</span>, <span class="st">"Prior criminal history"</span>, <span class="st">"Gender"</span>, </span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>              <span class="st">"Juvenile criminal history"</span>, <span class="st">"Current charge"</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
 </div>
 </section>
 <section id="visualize-overall-variable-importance" class="level3" data-number="2.2.2">
@@ -719,13 +782,13 @@ Note
 <ul>
 <li>For clarity, in the bar plot variables with significant overall importance are indicated by blue color and “*” next to variable names.</li>
 </ul>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-13_af878cd00fe9c8f76adf88f941234f8a">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>model_plots <span class="ot">&lt;-</span> <span class="fu">plot</span>(model_object)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-15_46a85d88cb59d2e24872543b1014a3c3">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>model_plots <span class="ot">&lt;-</span> <span class="fu">plot</span>(model_object)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="shapleyvic_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<p><img src="shapleyvic_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output-display">
-<p><img src="shapleyvic_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid" width="672"></p>
+<p><img src="shapleyvic_files/figure-html/unnamed-chunk-15-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="callout-note callout callout-style-default callout-captioned">
@@ -745,23 +808,23 @@ Note
 </div>
 </div>
 <p>The bar plot can be further edited using ggplot functions, e.g., edit text font size using <code>theme()</code> or add plot title using <code>labs()</code>:</p>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-14_a4949e763ba1b68dfb203a80b3cb3478">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>model_plots<span class="sc">$</span>bar <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>)) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Bar plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-16_54b0a9ade062fb452462878500ee080e">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>model_plots<span class="sc">$</span>bar <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>)) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Bar plot"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>To apply similar formatting to the violin plot, use the following function:</p>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-15_3930b45e4cf1333cd3a3499412c8970e">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_violin</span>(<span class="at">x =</span> model_object, <span class="at">title =</span> <span class="st">"Violin plot"</span>, </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot_theme =</span> <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-17_021e3ba750f247ab029814c3421f951d">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_violin</span>(<span class="at">x =</span> model_object, <span class="at">title =</span> <span class="st">"Violin plot"</span>, </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot_theme =</span> <span class="fu">theme</span>(<span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="ensemble-variable-ranking" class="level3" data-number="2.2.3">
 <h3 data-number="2.2.3" class="anchored" data-anchor-id="ensemble-variable-ranking"><span class="header-section-number">2.2.3</span> Ensemble variable ranking</h3>
 <p>ShapleyVIC values can also be used to rank variables by their importance to each model. The bar plot of ranks may help identify models with increased reliance on specific variable of interest for further investigation.</p>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-16_3f423816f9dc8a6c4a7f82b553e51e8f">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>val_ranks <span class="ot">&lt;-</span> <span class="fu">rank_variables</span>(model_object)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(val_ranks, <span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-18_8e88a833e761d972e39fe8f09bc1a57f">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>val_ranks <span class="ot">&lt;-</span> <span class="fu">rank_variables</span>(model_object)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(val_ranks, <span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  model_id                  Variable rank
 1        0                       Age    3
@@ -771,28 +834,28 @@ Note
 5        0 Juvenile criminal history    2
 6        0            Current charge    6</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(val_ranks, <span class="fu">aes</span>(<span class="at">x =</span> rank, <span class="at">group =</span> Variable)) <span class="sc">+</span> </span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span> </span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Variable, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Ranking"</span>, <span class="at">y =</span> <span class="st">""</span>, </span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"ShapleyVIC: Variable ranking among 250 models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(val_ranks, <span class="fu">aes</span>(<span class="at">x =</span> rank, <span class="at">group =</span> Variable)) <span class="sc">+</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span> </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Variable, <span class="at">nrow =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Ranking"</span>, <span class="at">y =</span> <span class="st">""</span>, </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"ShapleyVIC: Variable ranking among 250 models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="shapleyvic_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="864"></p>
+<p><img src="shapleyvic_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="864"></p>
 </div>
 </div>
 <p>The ensemble ranking averages the ranks across models, and can be used to guide downstream model building, e.g., using <a href="https://nliulab.github.io/AutoScore/">AutoScore</a>. See <a href="./autoscore_shapleyvic.html">the next chapter</a> for detailed demonstration.</p>
-<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-17_1df4c3d604fd87dc57df98e433db1809">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rank_variables</span>(model_object, <span class="at">summarise =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-hash="shapleyvic_cache/html/unnamed-chunk-19_2be8e845c87bbb076c81043151f83903">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rank_variables</span>(model_object, <span class="at">summarise =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                   Variable mean_rank
 1 Juvenile criminal history     1.224
 2    Prior criminal history     1.536</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># To return variable ranking as named vector for convenient integration with </span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="co"># AutoScore:</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rank_variables</span>(model_object, <span class="at">summarise =</span> <span class="cn">TRUE</span>, <span class="at">as_vector =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># To return variable ranking as named vector for convenient integration with </span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># AutoScore:</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rank_variables</span>(model_object, <span class="at">summarise =</span> <span class="cn">TRUE</span>, <span class="at">as_vector =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Juvenile criminal history    Prior criminal history 
                     1.224                     1.536 </code></pre>

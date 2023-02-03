@@ -59,6 +59,10 @@ dat <- readRDS("/Users/yilinning/Documents/nBox/dat_readmit_or_death.RDS")
 training (70%), validation (10%) and test (20%) sets for risk score development.
 - Perform median imputation for vital signs and lab tests based on training set.
 
+:::callout-important
+- *As detailed in [Chapter 1](data.qmd), handle missingness (and any other potential data issue) before applying ShapleyVIC.*
+:::
+
 ```{r, eval=TRUE}
 set.seed(1234)
 Out_split <- split_data(data = dat, ratio = c(7, 1, 2))
@@ -95,9 +99,8 @@ write.csv(validation_set[1:3500, ],
 **This part of the workflow is implemented in Python.**
 
 - Load data and set up input information.
-
-Data used in this analysis is sensitive, therefore we do not save training data 
-to the output folder to avoid any potential data security issue.
+- Data used in this analysis is sensitive, therefore we do not save training 
+data to the output folder to avoid any potential data security issue.
 
 ```{python, eval=FALSE}
 import os
