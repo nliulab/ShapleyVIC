@@ -17,8 +17,8 @@ compile_shapley_vic(
 \item{output_dir}{A string indicating path to the output folder created by
 the Python library.}
 
-\item{outcome_type}{A string indicating type of outcome. Currently only
-support \code{"binary"}.}
+\item{outcome_type}{A string indicating type of outcome. Currently
+supports \code{"binary", "continuous", "ordinal", "survival"}.}
 
 \item{x}{A \code{data.frame} of variables in the training set. Required if
 \code{x.csv} is not in \code{output_dir}. Ensure \code{x} is identical to 

@@ -4,10 +4,12 @@
 \alias{plot_violin}
 \title{Make violin plot for ShapleyVIC findings}
 \usage{
-plot_violin(x, title = NULL, plot_theme = NULL)
+plot_violin(x, criterion = "loss", title = NULL, plot_theme = NULL)
 }
 \arguments{
 \item{x}{ShapleyVIC object generated using \code{\link{compile_shapley_vic}}.}
+
+\item{criterion}{Criterion used to define nearly optimal. Default is "loss".}
 
 \item{title}{Title of violin plot (optional).}
 

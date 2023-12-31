@@ -40,8 +40,8 @@ check_df_svic <- function(df_svic) {
 #' Compile ShapleyVIC values and compute overall variable importance
 #' @param output_dir A string indicating path to the output folder created by
 #'   the Python library.
-#' @param outcome_type A string indicating type of outcome. Currently only
-#'   support \code{"binary"}.
+#' @param outcome_type A string indicating type of outcome. Currently
+#'   supports \code{"binary", "continuous", "ordinal", "survival"}.
 #' @param x A \code{data.frame} of variables in the training set. Required if
 #'   \code{x.csv} is not in \code{output_dir}. Ensure \code{x} is identical to 
 #'   that used in the Python steps.
@@ -58,11 +58,15 @@ check_df_svic <- function(df_svic) {
 #'   \code{data.frame} of ShapleyVIC values from nearly optimal models, adjusted
 #'   based on colinearity among predictors, and (ii) a \code{data.frame} of
 #'   overall variable importance computed from ShapleyVIC values.
-#' @importFrom stats glm
+#' @importFrom stats glm lm
 #' @importFrom utils read.csv
 #' @export
 compile_shapley_vic <- function(output_dir, outcome_type, x = NULL, y = NULL, 
                                 x_names_cat = NULL, x_names = NULL) {
+  outcome_type <- match.arg(
+    arg = outcome_type, 
+    choices = c("binary", "continuous", "ordinal", "survival")
+  )
   # x = NULL
   # y = NULL
   # Read ShapleyVIC output from Python library
@@ -105,15 +109,24 @@ compile_shapley_vic <- function(output_dir, outcome_type, x = NULL, y = NULL,
     
     for (x_name in x_names_cat) x[, x_name] <- factor(x[, x_name])
   }
-  dat <- as.data.frame(cbind(.y = y, x))
+  
   if (outcome_type == "binary") {
+    dat <- as.data.frame(cbind(.y = y, x))
     m <- glm(.y ~ ., data = dat, family = "binomial")
-    var_vif <- car::vif(m)
-    if (!is.null(dim(var_vif))) var_vif <- var_vif[, "GVIF"]
-  } else {
-    warning(simpleWarning("Ohter outcome types not yet implemented."))
-    NULL
-  }
+  } else if (outcome_type == "continuous") {
+    dat <- as.data.frame(cbind(.y = y, x))
+    m <- lm(.y ~ ., data = dat)
+  } else if (outcome_type == "survival") {
+    dat <- as.data.frame(cbind(.y = y$rank, x))
+    m <- lm(.y ~ ., data = dat)
+  } else if (outcome_type == "ordinal") {
+    # Treat outcome as continuous to compute VIF
+    dat <- as.data.frame(cbind(.y = as.numeric(y), x))
+    m <- lm(.y ~ ., data = dat)
+  } 
+  var_vif <- car::vif(m)
+  if (!is.null(dim(var_vif))) var_vif <- var_vif[, "GVIF"]
+  
   df_svic$shapley_vic_val <- adjust_val(
     val = df_svic$sage_value_unadjusted,
     var_vif = var_vif, var_vif_threshold = 2
@@ -177,10 +190,12 @@ plot_bars <- function(x, title = NULL, subtitle = NULL) {
 #' Make violin plot for ShapleyVIC findings
 #' @inheritParams draw_violins
 #' @inheritParams plot_bars
+#' @param criterion Criterion used to define nearly optimal. Default is "loss".
 #' @return Returns a violin plot. Use \code{plot_theme} to specify
 #'   \code{theme()} settings.
 #' @export
-plot_violin <- function(x, title = NULL, plot_theme = NULL) {
+plot_violin <- function(x, criterion = "loss", title = NULL, plot_theme = NULL) {
+  smaller_is_better <- criterion == "loss"
   df_svic <- x$models
   df_bar <- x$overall_importance
   var_ordering <- levels(df_bar$Variable)
@@ -194,7 +209,7 @@ plot_violin <- function(x, title = NULL, plot_theme = NULL) {
     draw_violins(
       var_names = df_svic$var_names, var_ordering = var_ordering,
       val = df_svic$shapley_vic_val, perf_metric = df_svic$perf_metric,
-      smaller_is_better = TRUE, title = title,
+      smaller_is_better = smaller_is_better, title = title,
       boarder_size = 0.5, plot_theme = plot_theme
     )
   } else {
@@ -202,15 +217,16 @@ plot_violin <- function(x, title = NULL, plot_theme = NULL) {
   }
 }
 #' Plot ShapleyVIC findings
+#' @inheritParams plot_violin
 #' @param x ShapleyVIC object generated using \code{\link{compile_shapley_vic}}.
 #' @param ... Not implemented
 #' @return Displays bar and violin plots and returns the two plot objects as a
 #'   list.
 #' @export
-plot.ShapleyVIC <- function(x, ...) {
+plot.ShapleyVIC <- function(x, criterion = "loss", ...) {
   p_bar <- plot_bars(x = x)
   plot(p_bar)
-  p_vio <- suppressMessages(plot_violin(x = x))
+  p_vio <- suppressMessages(plot_violin(x = x, criterion = criterion))
   plot(p_vio)
 }
 #' Print ShapleyVIC object
@@ -581,9 +597,9 @@ prep_data_zebra <- function(var_names, val, perf_metric, perf_metric_breaks,
     arrange(.data$y)
   vl_poly_list <- split(vl_poly, vl_poly$oldx)
   vl_poly_final <- purrr::map_df(vl_poly_list, function(x_df) {
-      if (all(x_df$oldx == "xnew")) x_df <- arrange(x_df, desc(x_df$y))
-      x_df
-    })
+    if (all(x_df$oldx == "xnew")) x_df <- arrange(x_df, desc(x_df$y))
+    x_df
+  })
   list(df_zebra_color = vl_fill2, df_violin_shape = vl_poly_final)
 }
 #' Create figure legend for violin plot
@@ -607,7 +623,7 @@ make_violin_legend <- function(perf_metric_breaks, col_vec) {
     geom_tile() +
     scale_fill_gradient2(low = col_vec[1], high = col_vec[n_brk + 1],
                          mid = col_vec[n_mid], midpoint = median(y_color)) +
-                         # labels = c("", "Lower", rep("", n_brk - 2), "Higher", "")) +
+    # labels = c("", "Lower", rep("", n_brk - 2), "Higher", "")) +
     theme(legend.position = "bottom") +
     guides(fill = guide_colorbar(title = "Model performance (Lower to higher)",
                                  label.hjust = 0, title.position = "top",
@@ -691,7 +707,7 @@ draw_violins <- function(var_names, var_ordering = NULL, val, perf_metric,
           axis.line.x = element_line(colour = "black"),
           axis.ticks.y = element_blank()) +
     labs(x = "", y = "Variable importance (>0 suggests importance)", title = title)
-    # labs(x = "", y = "Model reliance (>0 suggests importance)", title = title)
+  # labs(x = "", y = "Model reliance (>0 suggests importance)", title = title)
   # Next, add color to violin plots:
   p <- p +
     geom_segment(data = df_violin_list$df_zebra_color,

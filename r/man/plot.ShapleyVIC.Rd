@@ -4,10 +4,12 @@
 \alias{plot.ShapleyVIC}
 \title{Plot ShapleyVIC findings}
 \usage{
-\method{plot}{ShapleyVIC}(x, ...)
+\method{plot}{ShapleyVIC}(x, criterion = "loss", ...)
 }
 \arguments{
 \item{x}{ShapleyVIC object generated using \code{\link{compile_shapley_vic}}.}
+
+\item{criterion}{Criterion used to define nearly optimal. Default is "loss".}
 
 \item{...}{Not implemented}
 }
