@@ -4,15 +4,17 @@ project:
 
 book:
   title: "ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning"
-  author: "Yilin Ning, Chenglin Niu, Mingxuan Li, Siqi Li, Nan Liu"
+  author: "Yilin Ning, Chenglin Niu, Mingxuan Liu, Siqi Li, Nan Liu"
   date: today
   date-format: iso
   chapters:
     - index.qmd
-    - data.qmd
-    - shapleyvic.qmd
-    - autoscore_shapleyvic.qmd
-    - autoscore_shapleyvic_reprod.qmd
+    - ch1_data.qmd
+    - ch2_shapleyvic.qmd
+    - ch3_autoscore_shapleyvic.qmd
+    - ch4_autoscore_shapleyvic_reprod.qmd
+    - ch5_shapleyvic_ord.qmd
+    - ch6_shapleyvic_cont.qmd
   downloads: pdf
 
 format:

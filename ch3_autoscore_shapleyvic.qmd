@@ -1,0 +1,254 @@
+# AutoScore-ShapleyVIC for Interpretable Risk Score Development
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, eval = FALSE, 
+                      cache = TRUE, fig.width = 6, fig.height = 6, 
+                      python.reticulate = FALSE)
+```
+
+Risk scores are widely used for clinical decision making and commonly generated 
+from logistic regression models. Machine-learning-based methods may work well 
+for identifying important predictors to create parsimonious scores, but such 
+'black box' variable selection limits interpretability, and variable importance 
+evaluated from a single model can be biased. We propose a robust and 
+interpretable variable selection approach using ShapleyVIC, and integrate it 
+with the [AutoScore framework](https://nliulab.github.io/AutoScore/) for 
+convenient development of risk scoring models.
+
+In this chapter, we describe the application of the AutoScore-ShapleyVIC 
+workflow using an empirical example in 
+[our paper](https://doi.org/10.1371/journal.pdig.0000062), and provide code 
+for generating a risk score (i.e., Model 2 in the paper) to predict the risk of 
+30-day readmission or death from 41 candidate variables.
+
+In the [next chapter](ch4_autoscore_shapleyvic_reprod.qmd), we provide a fully 
+reproducible example to demonstrate the use of the AutoScore-ShapleyVIC workflow 
+using a simulated data that is publicly available.
+
+Cite the following papers for AutoScore-ShapleyVIC:
+
+- Ning Y, Ong ME, Chakraborty B, Goldstein BA, Ting DS, Vaughan R, Liu N. [Shapley variable importance cloud for interpretable machine learning](https://doi.org/10.1016/j.patter.2022.100452). *Patterns* 2022
+
+- Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. [A novel interpretable machine learning system to generate clinical risk scores: An application for predicting early mortality or unplanned readmission in a retrospective cohort study](https://doi.org/10.1371/journal.pdig.0000062). *PLOS Digit Health* 1(6): e0000062.
+
+- Xie F, Chakraborty B, Ong MEH, Goldstein BA, Liu N. [AutoScore: A machine learning-based automatic clinical score generator and its application to mortality prediction using electronic health records](http://dx.doi.org/10.2196/21798). *JMIR Medical Informatics* 2020; 8(10): e21798.
+
+## [R] Prepare data
+
+**This part of the workflow is implemented in R.**
+
+### Load R packages and data
+
+```{r}
+if (!require(AutoScore, quietly = TRUE)) install.packages("AutoScore")
+library(AutoScore)
+library(tidyverse) # For convenient data manipulation and visualization
+
+# Read the final clean data with 41 candidate variables and the binary outcome 
+# (`label`):
+dat <- readRDS("dat_readmit_or_death.RDS")
+```
+
+```{r, eval=TRUE, echo=FALSE}
+library(AutoScore)
+library(tidyverse) # For convenient data manipulation and visualization
+dat <- readRDS("/Users/yilinning/Documents/nBox/dat_readmit_or_death.RDS")
+```
+
+### Prepare training, validation and test datasets
+
+- Use the `split_data()` function of the AutoScore package to split data into 
+training (70%), validation (10%) and test (20%) sets for risk score development.
+- Perform median imputation for vital signs and lab tests based on training set.
+
+:::callout-important
+- *As detailed in [Chapter 1](ch1_data.qmd), handle missingness (and any other potential data issue) before applying ShapleyVIC.*
+:::
+
+```{r, eval=TRUE}
+set.seed(1234)
+Out_split <- split_data(data = dat, ratio = c(7, 1, 2))
+# Median imputation for vital signs and lab tests based on training set:
+train_lab_test <- Out_split$train_set %>% select(Pulse:SODIUM)
+train_lab_test_median <- apply(train_lab_test, 2, function(x) median(x, na.rm = TRUE))
+Out_split <- lapply(Out_split, function(dat) {
+  for (nm in names(train_lab_test)) {
+    dat[, nm] <- ifelse(is.na(dat[, nm]), train_lab_test_median[nm], dat[, nm])
+  }
+  dat
+})
+
+train_set <- Out_split$train_set
+validation_set <- Out_split$validation_set
+test_set <- Out_split$test_set
+```
+
+- Prepare `output_dir` for ShapleyVIC, using `train_set` as training set and 
+the first 3500 observations in `validation_set` as the explanation data. 
+
+```{r}
+output_dir <- "score_output"
+if (!dir.exists(output_dir)) dir.create(output_dir)
+write.csv(train_set, file = file.path(output_dir, "train_set.csv"), 
+          row.names = FALSE)
+write.csv(validation_set[1:3500, ], 
+          file = file.path(output_dir, "validation_set.csv"), 
+          row.names = FALSE)
+```
+
+## [Python] Compute ShapleyVIC values
+
+**This part of the workflow is implemented in Python.**
+
+- Load data and set up input information.
+- Data used in this analysis is sensitive, therefore we do not save training 
+data to the output folder to avoid any potential data security issue.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+import os
+import pandas as pd
+output_dir = "score_output"
+dat_train = pd.read_csv(os.path.join(output_dir, 'train_set.csv'))
+dat_expl = pd.read_csv(os.path.join(output_dir, 'validation_set.csv'))
+
+y_name = 'label'
+x_names_cat = ['Gender','Race','Triage_Class_Code','DayofWeek','MI','CHF','PVD',
+    'Stroke','Dementia','Pulmonary','Rheumatic','PUD','LiverMild','Diabetes',
+    'DMcx','Paralysis','Renal','Cancer','LiverSevere','Mets','admit_cat',
+    'resuscitation','VENTILATION']
+from ShapleyVIC import model
+model_object = model.models(
+    x=dat_train.drop(columns=[y_name]), y=dat_train[y_name], 
+    x_names_cat=x_names_cat, outcome_type="binary", output_dir=output_dir,
+    save_data=False
+)
+```
+
+- Draw 350 nearly optimal models.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+model_object.draw_models(u1=0.2, u2=300, m=800, n_final=350)
+```
+
+- Compute ShapleyVIC values.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+from ShapleyVIC import compute
+m_svic = compute.compute_shapley_vic(
+    model_obj=model_object, 
+    x_expl=dat_expl.drop(columns=[y_name]), y_expl=dat_expl[y_name], 
+    n_cores=10, # running on a PC with 40 logical processors
+    threshold=0.025
+)
+```
+
+## [R] Develop risk score 
+
+**This part of the workflow is implemented in R.**
+
+### Rank variables using ShapleyVIC
+
+- Compile ShapleyVIC output.
+- Since data was not saved in the Python workflow, we explicitly specify it in 
+the R analysis.
+- Explicitly specify names of categorical variables, identical to those 
+specified in the Python workflow.
+
+```{r}
+output_dir <- "score_output"
+x_names_display <- c(
+  "Age", "Gender", "Race", "ED LOS", "ED triage", 
+  "ED boarding time", "Consultation waiting time", "No. ED visit", 
+  "Day of week", "Inpatient LOS", "Ventilation", "Resuscitation", 
+  "No. surgery", "No. ICU stay", 
+  "No. HD stay", "Pulse", "Respiration", "SpO2", 
+  "DBP", "SBP", "Bicarbonate", "Creatinine", 
+  "Potasium", "Sodium", "MI", "CHF", "PVD", "Stroke", 
+  "Dementia", "Pulmonary", "Rheumatic", "PUD", "Mild liver disease", 
+  "Diabetes", "Diabetes with complications", "Paralysis", "Renal", "Cancer", 
+  "Severe liver disease", "Metastatic cancer", "Admission type"
+)
+y_name <- "label"
+x_names <- setdiff(names(train_set), y_name)
+library(ShapleyVIC)
+model_object <- compile_shapley_vic(
+  output_dir = output_dir, outcome_type = "binary", 
+  x = train_set[, x_names], y = train_set$label,
+  x_names_cat = c(
+    'Gender','Race','Triage_Class_Code','DayofWeek','MI','CHF','PVD',
+    'Stroke','Dementia','Pulmonary','Rheumatic','PUD','LiverMild','Diabetes',
+    'DMcx','Paralysis','Renal','Cancer','LiverSevere','Mets','admit_cat',
+    'resuscitation','VENTILATION'
+  ),
+  x_names = x_names_display
+)
+```
+
+```{r, eval=TRUE, echo=FALSE}
+output_dir <- "score_output"
+x_names_display <- c(
+  "Age", "Gender", "Race", "ED LOS", "ED triage", 
+  "ED boarding time", "Consultation waiting time", "No. ED visit", 
+  "Day of week", "Inpatient LOS", "Ventilation", "Resuscitation", 
+  "No. surgery", "No. ICU stay", 
+  "No. HD stay", "Pulse", "Respiration", "SpO2", 
+  "DBP", "SBP", "Bicarbonate", "Creatinine", 
+  "Potasium", "Sodium", "MI", "CHF", "PVD", "Stroke", 
+  "Dementia", "Pulmonary", "Rheumatic", "PUD", "Mild liver disease", 
+  "Diabetes", "Diabetes with complications", "Paralysis", "Renal", "Cancer", 
+  "Severe liver disease", "Metastatic cancer", "Admission type"
+)
+library(ShapleyVIC)
+model_object <- readRDS(file.path(output_dir, "model_object.RDS"))
+```
+
+- Visualize ShapleyVIC values for overall variable importance.
+
+```{r, eval=TRUE, message=TRUE}
+model_plots <- plot(model_object)
+```
+
+- Derive ShapleyVIC-based ensemble variable ranking.
+
+```{r, eval=TRUE}
+ranking <- rank_variables(model_object, summarise = TRUE, as_vector = TRUE)
+ranking
+```
+
+### Develop risk score using AutoScore workflow
+
+- Modify variable names in training, validation and test sets for 
+publication-ready figures and printed output.
+
+```{r, eval=TRUE}
+# Current raw variable names:
+names(train_set)
+# Modified variable names:
+names(train_set)[-1] <- x_names_display
+names(train_set)
+names(validation_set)[-1] <- x_names_display
+names(test_set)[-1] <- x_names_display
+```
+
+- Based on the ensemble variable ranking, apply [AutoScore STEP(ii)](https://nliulab.github.io/AutoScore/04-autoscore.html#stepii-select-variables-with-parsimony-plot) to select the best model with parsimony plot.
+
+```{r, eval=TRUE, fig.width=7, fig.height=5}
+AUC <- AutoScore_parsimony(
+  train_set = train_set, validation_set = validation_set, 
+  rank = ranking, max_score = 100, n_min = 1, n_max = length(ranking)
+)
+```
+
+- This parsimony is somewhat smoother than [that from random forest-based variable ranking used in AutoScore](https://nliulab.github.io/AutoScore/04-autoscore.html#stepii-select-variables-with-parsimony-plot).
+- A feasible choice is to select the top 6 variables, as adding additional 
+variables does not substantially improve model performance.
+- Apply [AutoScore STEP(iii)](https://nliulab.github.io/AutoScore/04-autoscore.html#model) to build initial scores from the top 6 variables.
+
+```{r, eval=TRUE, fig.width=5, fig.height=5}
+cut_vec <- AutoScore_weighting(
+  train_set = train_set, validation_set = validation_set, 
+  final_variables = names(ranking)[1:6], max_score = 100
+)
+```
+
+- Users can apply [additional AutoScore STEPs](https://nliulab.github.io/AutoScore/04-autoscore.html#stepiv-fine-tune-initial-score-from-stepiii) for subsequent model fine-tuning and evaluation.

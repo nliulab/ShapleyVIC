@@ -18,7 +18,7 @@ assessments of a single final model to avoid biased inference. Please visit
 
 ## Usage
 
-As detailed in [Chapter 3](shapleyvic.qmd) ShapleyVIC analysis of variable 
+As detailed in [Chapter 3](ch2_shapleyvic.qmd) ShapleyVIC analysis of variable 
 importance consists of 3 general steps:
 
 1. Training an optimal prediction model (e.g., a logistic regression model).
@@ -27,15 +27,20 @@ same model class (e.g., logistic regression).
 3. Evaluate Shapley-based variable importance from each nearly optimal model and
 pool information for inference.
 
+[Chapter 3](ch2_shapleyvic.qmd) demonstrates ShapleyVIC application for 
+binary outcomes, and [Chapter 6](ch5_shapleyvic_ord.qmd) and 
+[Chapter 7](ch6_shapleyvic_cont.qmd) provide additional examples for applications 
+for ordinal and continuous outcomes, respectively.
+
 ShapleyVIC does not require variable centering or standardization, but requires 
 some data checking and pre-processing for stable and smooth processing, which we 
-summarize in [Chapter 2](data.qmd).
+summarize in [Chapter 2](ch1_data.qmd).
 
 The ShapleyVIC-based variable ranking can also be used with the 
 [AutoScore framework](https://nliulab.github.io/AutoScore/) to develop clinical 
 risk scores for interpretable risk prediction, which we demonstrate in 
-[Chapter 4](autoscore_shapleyvic.qmd) and 
-[Chapter 5](autoscore_shapleyvic_reprod.qmd).
+[Chapter 4](ch3_autoscore_shapleyvic.qmd) and 
+[Chapter 5](ch4_autoscore_shapleyvic_reprod.qmd).
 
 ## Installation
 
@@ -94,6 +99,10 @@ devtools::install_github("nliulab/ShapleyVIC/r")
 ### Method extension
 
 - Ning Y, Li S, Ong ME, Xie F, Chakraborty B, Ting DS, Liu N. [A novel interpretable machine learning system to generate clinical risk scores: An application for predicting early mortality or unplanned readmission in a retrospective cohort study](https://doi.org/10.1371/journal.pdig.0000062). *PLOS Digit Health* 2022; 1(6): e0000062.
+
+## Clinical applications
+
+- Deng X, Ning Y, Saffari SE, Xiao B, Niu C, Ng SYE, Chia N, Choi X, Heng DL, Tan YJ, Ng E, Xu Z, Tay KY, Au WL, Ng A, Tan EK, Liu N, and Tan LCS (2023). [Identifying clinical features and blood biomarkers associated with mild cognitive impairment in Parkinson's Disease using machine learning](https://doi.org/10.1111/ene.15785). *European Journal of Neurology*, 00:1–9. 
 
 ## Contact
 

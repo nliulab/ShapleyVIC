@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning - 4&nbsp; AutoScore-ShapleyVIC Reproducible Example</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./ch5_shapleyvic_ord.html" rel="next">
+<link href="./ch3_autoscore_shapleyvic.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="custom.css">
+</head>
+
+<body class="nav-sidebar floating">
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./ch4_autoscore_shapleyvic_reprod.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC Reproducible Example</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning</a> 
+        <div class="sidebar-tools-main">
+    <a href="./ShapleyVIC--Shapley-Variable-Importance-Cloud-for-Interpretable-Machine-Learning.pdf" title="Download PDF" class="quarto-navigation-tool px-1" aria-label="Download PDF"><i class="bi bi-file-pdf"></i></a>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">ShapleyVIC Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch1_data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Data requirements</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch2_shapleyvic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">ShapleyVIC for Variable Importance Assessment</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch3_autoscore_shapleyvic.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC for Interpretable Risk Score Development</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch4_autoscore_shapleyvic_reprod.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC Reproducible Example</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch5_shapleyvic_ord.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">ShapleyVIC for Ordinal Outcomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./ch6_shapleyvic_cont.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">ShapleyVIC for Continuous Outcomes</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#r-prepare-data" id="toc-r-prepare-data" class="nav-link active" data-scroll-target="#r-prepare-data"><span class="header-section-number">4.1</span> [R] Prepare data</a>
+  <ul class="collapse">
+  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data"><span class="header-section-number">4.1.1</span> Load data</a></li>
+  <li><a href="#prepare-training-validation-and-test-datasets" id="toc-prepare-training-validation-and-test-datasets" class="nav-link" data-scroll-target="#prepare-training-validation-and-test-datasets"><span class="header-section-number">4.1.2</span> Prepare training, validation, and test datasets</a></li>
+  </ul></li>
+  <li><a href="#python-compute-shapleyvic-values" id="toc-python-compute-shapleyvic-values" class="nav-link" data-scroll-target="#python-compute-shapleyvic-values"><span class="header-section-number">4.2</span> [Python] Compute ShapleyVIC values</a></li>
+  <li><a href="#r-develop-risk-score" id="toc-r-develop-risk-score" class="nav-link" data-scroll-target="#r-develop-risk-score"><span class="header-section-number">4.3</span> [R] Develop risk score</a>
+  <ul class="collapse">
+  <li><a href="#rank-variables-using-shapleyvic" id="toc-rank-variables-using-shapleyvic" class="nav-link" data-scroll-target="#rank-variables-using-shapleyvic"><span class="header-section-number">4.3.1</span> Rank variables using ShapleyVIC</a></li>
+  <li><a href="#develop-risk-score-using-autoscore-workflow" id="toc-develop-risk-score-using-autoscore-workflow" class="nav-link" data-scroll-target="#develop-risk-score-using-autoscore-workflow"><span class="header-section-number">4.3.2</span> Develop risk score using AutoScore workflow</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC Reproducible Example</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>This chapter provides a fully reproducible example to demonstrate in detail the use of the AutoScore-ShapleyVIC workflow, using a simulated dataset with binary outcome available from the AutoScore package. The data is described in detail in the <a href="https://nliulab.github.io/AutoScore/02-desc_analysis.html">AutoScore Guidebook</a>.</p>
+<section id="r-prepare-data" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="r-prepare-data"><span class="header-section-number">4.1</span> [R] Prepare data</h2>
+<p><strong>This part of the workflow is implemented in R.</strong></p>
+<section id="load-data" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="load-data"><span class="header-section-number">4.1.1</span> Load data</h3>
+<ul>
+<li>Load <code>sample_data</code> from the AutoScore package.</li>
+<li>As required by AutoScore, change the name of outcome variable to <code>label</code>.</li>
+<li>Read <a href="https://nliulab.github.io/AutoScore/03-data_processing.html">AutoScore Guidebook</a> for detailed data requirement.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-2_fea0575a65dcdfc3c0b26704c6e461cb">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(AutoScore)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"sample_data"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(sample_data)[<span class="fu">names</span>(sample_data) <span class="sc">==</span> <span class="st">"Mortality_inpatient"</span>] <span class="ot">&lt;-</span> <span class="st">"label"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">check_data</span>(sample_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Data type check passed. </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>No NA in data. </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(sample_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 20000    22</code></pre>
+</div>
+</div>
+<ul>
+<li>As required by ShapleyVIC, code the binary outcome as 0/1.</li>
+<li>All variables are continuous.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-3_68af3eee4ce43e98bfcedfc757c10de0">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sample_data<span class="sc">$</span>label <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(sample_data<span class="sc">$</span>label <span class="sc">==</span> <span class="st">"TRUE"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sample_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Vital_A Vital_B Vital_C Vital_D Vital_E Vital_F Vital_G Lab_A Lab_B Lab_C
+1      87     143      78     101      13    35.7      99   160  13.0    23
+2      43     133      64      83      20    36.1      95   116  15.3    24
+3      80     115      48      72      23    37.4      99   133   8.0    27
+4     106     121      68      84      16    37.6      99   206  12.1    25
+5      86     135      70      83      24    37.2      96   100  18.1    26
+6      69     123      72      88      16    36.5      95   204  19.9    20
+  Lab_D Lab_E Lab_F Lab_G Lab_H Lab_I Lab_J Lab_K Lab_L Lab_M Age label
+1   0.0   105    34    12   0.8    98   4.4     0   136    16  66     0
+2   0.8   108    36    12   0.6   322   4.3    55   141    17  79     0
+3   1.3   111    30    11   2.9     0   4.4    40   142     0  86     0
+4   0.0   102    39    14   3.0   214   4.4     0   134     6  69     0
+5   2.3    96    36    13   2.7   326   3.8    20   134    26  65     0
+6   2.5   101    31    10   0.8   103   4.2    38   138    14  68     0</code></pre>
+</div>
+</div>
+</section>
+<section id="prepare-training-validation-and-test-datasets" class="level3" data-number="4.1.2">
+<h3 data-number="4.1.2" class="anchored" data-anchor-id="prepare-training-validation-and-test-datasets"><span class="header-section-number">4.1.2</span> Prepare training, validation, and test datasets</h3>
+<ul>
+<li>Given large sample size (n=20000), split the data into training (70%), validation (10%) and test (20%) sets for risk score development.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-4_eb660c9a8ef7115dbed776267fb3c048">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">4</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>out_split <span class="ot">&lt;-</span> <span class="fu">split_data</span>(<span class="at">data =</span> sample_data, <span class="at">ratio =</span> <span class="fu">c</span>(<span class="fl">0.7</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>train_set <span class="ot">&lt;-</span> out_split<span class="sc">$</span>train_set</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(train_set)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 14000    22</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>validation_set <span class="ot">&lt;-</span> out_split<span class="sc">$</span>validation_set</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(validation_set)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2000   22</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>test_set <span class="ot">&lt;-</span> out_split<span class="sc">$</span>test_set</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(test_set)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4000   22</code></pre>
+</div>
+</div>
+<ul>
+<li>Prepare <code>output_dir</code> for ShapleyVIC, using <code>train_set</code> as training set and <code>validation_set</code> as the explanation data.</li>
+</ul>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><em>As detailed in <a href="./ch1_data.html">Chapter 1</a>, check for and handle data issues before applying ShapleyVIC.</em></li>
+<li><em>This demo uses data as-is because it is simulated clean data.</em></li>
+</ul>
+</div>
+</div>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-5_51150cb1dbfad2b70884817ffc1a8b09">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>output_dir <span class="ot">&lt;-</span> <span class="st">"mort_output"</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) <span class="fu">dir.create</span>(output_dir)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(train_set, <span class="at">file =</span> <span class="fu">file.path</span>(output_dir, <span class="st">"train_set.csv"</span>), </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(validation_set, </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">file =</span> <span class="fu">file.path</span>(output_dir, <span class="st">"validation_set.csv"</span>), </span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="python-compute-shapleyvic-values" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="python-compute-shapleyvic-values"><span class="header-section-number">4.2</span> [Python] Compute ShapleyVIC values</h2>
+<p><strong>This part of the workflow is implemented in Python.</strong></p>
+<ul>
+<li>Load data and set up input information.</li>
+</ul>
+<div class="cell" data-python.reticulate="false" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-6_2e753245fada490f815ffeed078f3386">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"mort_output"</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>dat_train <span class="op">=</span> pd.read_csv(os.path.join(output_dir, <span class="st">'train_set.csv'</span>))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>dat_expl <span class="op">=</span> pd.read_csv(os.path.join(output_dir, <span class="st">'validation_set.csv'</span>))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>y_name <span class="op">=</span> <span class="st">'label'</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> model</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>model_object <span class="op">=</span> model.models(</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span>dat_train.drop(columns<span class="op">=</span>[y_name]), y<span class="op">=</span>dat_train[y_name], </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># No need to specify x_names_cat because all variables are continuous</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    outcome_type<span class="op">=</span><span class="st">"binary"</span>, output_dir<span class="op">=</span>output_dir</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Set values for hyper-parameters <code>u1</code> and <code>u2</code>.</li>
+</ul>
+<div class="cell" data-python.reticulate="false" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-7_e93f380eb2f872c8a1b4fb8251221660">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>u1, u2 <span class="op">=</span> model_object.init_hyper_params(m<span class="op">=</span><span class="dv">200</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>(u1, u2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<pre><code>(0.5, 15.625)</code></pre>
+<ul>
+<li>Draw 250 nearly optimal models from 500 initial samples.</li>
+</ul>
+<div class="cell" data-python.reticulate="false" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-8_622fef45095d3ca35f4888ca515fb4a9">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>model_object.draw_models(u1<span class="op">=</span>u1, u2<span class="op">=</span>u2, m<span class="op">=</span><span class="dv">500</span>, n_final<span class="op">=</span><span class="dv">250</span>, random_state<span class="op">=</span><span class="dv">1234</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>model_object.models_plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="figure" style="text-align: center">
+<p><img src="mort_output/output.png" width="70%"></p>
+</div>
+<div class="figure" style="text-align: center">
+<p><img src="mort_output/output2.png" width="70%"></p>
+</div>
+<ul>
+<li>Compute ShapleyVIC values.</li>
+</ul>
+<div class="cell" data-python.reticulate="false" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-9_7cc68e926cfe94e1f1b16834f1a6ac80">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ShapleyVIC <span class="im">import</span> compute</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>m_svic <span class="op">=</span> compute.compute_shapley_vic(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    model_obj<span class="op">=</span>model_object, </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    x_expl<span class="op">=</span>dat_expl.drop(columns<span class="op">=</span>[y_name]), y_expl<span class="op">=</span>dat_expl[y_name], </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    n_cores<span class="op">=</span><span class="dv">25</span>, <span class="co"># running on a PC with 40 logical processors</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    threshold<span class="op">=</span><span class="fl">0.05</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><em>For users’ reference, the command above took approximately 17 hours on a PC (Windows 10 Education; Intel(R) Xeon(R) Silver 4210 CPU @ 2.20GHz 2.19GHz (2 processors); 128GB RAM).</em></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="r-develop-risk-score" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="r-develop-risk-score"><span class="header-section-number">4.3</span> [R] Develop risk score</h2>
+<p><strong>This part of the workflow is implemented in R.</strong></p>
+<section id="rank-variables-using-shapleyvic" class="level3" data-number="4.3.1">
+<h3 data-number="4.3.1" class="anchored" data-anchor-id="rank-variables-using-shapleyvic"><span class="header-section-number">4.3.1</span> Rank variables using ShapleyVIC</h3>
+<ul>
+<li>Compile ShapleyVIC output.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-10_5cffc4f06803f43e7ece33b621d1ebd1">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ShapleyVIC)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>model_object <span class="ot">&lt;-</span> <span class="fu">compile_shapley_vic</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">output_dir =</span> output_dir, <span class="at">outcome_type =</span> <span class="st">"binary"</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Compiling results for binary outcome using loss criterion to define neaerly optimal models.</code></pre>
+</div>
+</div>
+<ul>
+<li>Visualize ShapleyVIC values for overall variable importance.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-11_ed3a6613644d7727a8d70eb397e3ef76">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>model_plots <span class="ot">&lt;-</span> <span class="fu">plot</span>(model_object)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ch4_autoscore_shapleyvic_reprod_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output-display">
+<p><img src="ch4_autoscore_shapleyvic_reprod_files/figure-html/unnamed-chunk-11-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ul>
+<li>Derive ShapleyVIC-based ensemble variable ranking.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-12_783c7a8edc72aff69975a494a816c431">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ranking <span class="ot">&lt;-</span> <span class="fu">rank_variables</span>(model_object, <span class="at">summarise =</span> <span class="cn">TRUE</span>, <span class="at">as_vector =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>ranking</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Age   Lab_H Vital_E   Lab_K Vital_A   Lab_B   Lab_M Vital_C   Lab_C   Lab_D 
+  1.000   2.116   3.028   4.104   5.588   5.744   8.904   8.940   9.084   9.704 
+  Lab_L   Lab_E Vital_D   Lab_G Vital_B   Lab_J   Lab_F 
+ 10.120  10.268  11.628  12.952  13.220  13.328  16.052 </code></pre>
+</div>
+</div>
+</section>
+<section id="develop-risk-score-using-autoscore-workflow" class="level3" data-number="4.3.2">
+<h3 data-number="4.3.2" class="anchored" data-anchor-id="develop-risk-score-using-autoscore-workflow"><span class="header-section-number">4.3.2</span> Develop risk score using AutoScore workflow</h3>
+<ul>
+<li>Based on the ensemble variable ranking, apply <a href="https://nliulab.github.io/AutoScore/04-autoscore.html#stepii-select-variables-with-parsimony-plot">AutoScore STEP(ii)</a> to select the best model with parsimony plot.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-13_c28717417ea0455061cdae743d91a62a">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>AUC <span class="ot">&lt;-</span> <span class="fu">AutoScore_parsimony</span>(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">train_set =</span> train_set, <span class="at">validation_set =</span> validation_set, </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">rank =</span> ranking, <span class="at">max_score =</span> <span class="dv">100</span>, <span class="at">n_min =</span> <span class="dv">1</span>, <span class="at">n_max =</span> <span class="fu">length</span>(ranking)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Select 1 Variable(s):  Area under the curve: 0.6649
+Select 2 Variable(s):  Area under the curve: 0.7466
+Select 3 Variable(s):  Area under the curve: 0.7881
+Select 4 Variable(s):  Area under the curve: 0.8009
+Select 5 Variable(s):  Area under the curve: 0.8137
+Select 6 Variable(s):  Area under the curve: 0.8268
+Select 7 Variable(s):  Area under the curve: 0.8232
+Select 8 Variable(s):  Area under the curve: 0.8234
+Select 9 Variable(s):  Area under the curve: 0.8215
+Select 10 Variable(s):  Area under the curve: 0.8286
+Select 11 Variable(s):  Area under the curve: 0.8267
+Select 12 Variable(s):  Area under the curve: 0.8294
+Select 13 Variable(s):  Area under the curve: 0.8281
+Select 14 Variable(s):  Area under the curve: 0.8246
+Select 15 Variable(s):  Area under the curve: 0.8293
+Select 16 Variable(s):  Area under the curve: 0.8275
+Select 17 Variable(s):  Area under the curve: 0.8278</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ch4_autoscore_shapleyvic_reprod_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ul>
+<li>This parsimony is somewhat smoother than <a href="https://nliulab.github.io/AutoScore/04-autoscore.html#stepii-select-variables-with-parsimony-plot">that from random forest-based variable ranking used in AutoScore</a>.</li>
+<li>A feasible choice is to select the top 6 variables, as adding additional variables does not substantially improve model performance.</li>
+<li>Apply <a href="https://nliulab.github.io/AutoScore/04-autoscore.html#model">AutoScore STEP(iii)</a> to build initial scores from the top 6 variables.</li>
+</ul>
+<div class="cell" data-hash="ch4_autoscore_shapleyvic_reprod_cache/html/unnamed-chunk-14_3bb107ad5808f5aa2a6a5bca71ad7843">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>cut_vec <span class="ot">&lt;-</span> <span class="fu">AutoScore_weighting</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">train_set =</span> train_set, <span class="at">validation_set =</span> validation_set, </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">final_variables =</span> <span class="fu">names</span>(ranking)[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>], <span class="at">max_score =</span> <span class="dv">100</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>****Included Variables: 
+  variable_name
+1           Age
+2         Lab_H
+3       Vital_E
+4         Lab_K
+5       Vital_A
+6         Lab_B
+****Initial Scores: 
+
+
+========  ==========  =====
+variable  interval    point
+========  ==========  =====
+Age       &lt;35           0  
+          [35,49)       7  
+          [49,76)      17  
+          [76,89)      23  
+          &gt;=89         27  
+                           
+Lab_H     &lt;0.2          0  
+          [0.2,1.1)     4  
+          [1.1,3.1)     9  
+          [3.1,4)      15  
+          &gt;=4          18  
+                           
+Vital_E   &lt;12           0  
+          [12,15)       2  
+          [15,22)       7  
+          [22,25)      12  
+          &gt;=25         15  
+                           
+Lab_K     &lt;8            0  
+          [8,42)        6  
+          [42,58)      11  
+          &gt;=58         14  
+                           
+Vital_A   &lt;60           0  
+          [60,73)       1  
+          [73,98)       6  
+          [98,111)     10  
+          &gt;=111        13  
+                           
+Lab_B     &lt;8.5          0  
+          [8.5,11.2)    4  
+          [11.2,17)     7  
+          [17,19.8)    10  
+          &gt;=19.8       12  
+========  ==========  =====</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="ch4_autoscore_shapleyvic_reprod_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="480"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>***Performance (based on validation set):
+AUC:  0.8268   95% CI: 0.7953-0.8583 (DeLong)
+Best score threshold: &gt;= 57 
+Other performance indicators based on this score threshold: 
+Sensitivity: 0.8065
+Specificity: 0.6775
+PPV:         0.1736
+NPV:         0.9766
+***The cutoffs of each variable generated by the AutoScore are saved in cut_vec. You can decide whether to revise or fine-tune them </code></pre>
+</div>
+</div>
+<ul>
+<li>Users can apply <a href="https://nliulab.github.io/AutoScore/04-autoscore.html#stepiv-fine-tune-initial-score-from-stepiii">additional AutoScore STEPs</a> for subsequent model fine-tuning and evaluation.</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./ch3_autoscore_shapleyvic.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">AutoScore-ShapleyVIC for Interpretable Risk Score Development</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./ch5_shapleyvic_ord.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">ShapleyVIC for Ordinal Outcomes</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

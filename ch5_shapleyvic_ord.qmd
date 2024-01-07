@@ -1,0 +1,237 @@
+# ShapleyVIC for Ordinal Outcomes
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE)
+```
+
+As introduced in the [ShapleyVIC paper](https://doi.org/10.1016/j.patter.2022.100452), 
+this method can be applied to regression models beyond the logistic regression.
+This chapter provides a reproducible example to demonstrate its application for
+ordinal outcomes using a simulated dataset with ordinal outcome
+from the AutoScore package. The data is described in detail in the
+[AutoScore Guidebook](https://nliulab.github.io/AutoScore/02-desc_analysis.html).
+
+Specifically, as demonstrated in a 
+[recent clinical application](https://doi.org/10.1111/ene.15785), we use
+ShapleyVIC to analyse the importance of all candidate variables in the simulated
+dataset, exclude variables that have non-significant contribution to prediction,
+and apply the stepwise variable selection (starting with all significant
+contributors) to build sparse regression models for prediction.
+
+## [R] Prepare data
+
+**This part of the workflow is implemented in R.**
+
+### Load data
+
+- Load `sample_data_ordinal` from the AutoScore package.
+- Variable `label` is a simulated outcome label with 3 ordered categories.
+- Among the 20 predictor variables, `Gender`, `Util_A` and the 5 comorbidity 
+variables (`Comorb_A` to `Comorb_E`) are categorical, and the rest are continuous.
+
+```{r}
+library(AutoScore)
+library(dplyr)
+library(purrr)
+data("sample_data_ordinal")
+head(sample_data_ordinal)
+dim(sample_data_ordinal)
+
+summary(sample_data_ordinal)
+```
+
+- Recode the outcome labels to start from 0, which is required by ShapleyVIC.
+
+```{r}
+sample_data_ordinal$label <- as.ordered(as.numeric(sample_data_ordinal$label) - 1)
+table(sample_data_ordinal$label)
+```
+
+### Prepare training, validation, and test datasets
+
+- Given large sample size (n=`r nrow(sample_data_ordinal)`), split the data into 
+training (70%), validation (10%) and test (20%) sets for regression model 
+development.
+- Stratify by the outcome variable (`label`) when splitting data.
+
+```{r}
+set.seed(4)
+out_split <- split_data(data = sample_data_ordinal, ratio = c(0.7, 0.1, 0.2), 
+                        strat_by_label = TRUE)
+train_set <- out_split$train_set
+dim(train_set)
+validation_set <- out_split$validation_set
+dim(validation_set)
+test_set <- out_split$test_set
+dim(test_set)
+```
+
+- Prepare `ord_output` for ShapleyVIC, using `train_set` as training set and `validation_set` as the explanation data. 
+
+:::callout-important
+- *As detailed in [Chapter 1](ch1_data.qmd), check for and handle data issues before applying ShapleyVIC. This demo uses data as-is because it is simulated clean data.*
+- *In this example the `validation_set` has 2000 samples, which is a reasonable sample size to be used as the explanation data. In cases with larger sample sizes, users should use a smaller subset as the explanation data (see [Chapter 1](ch1_data.qmd) for detail).*
+:::
+
+```{r, eval=FALSE}
+output_dir <- "ord_output"
+if (!dir.exists(output_dir)) dir.create(output_dir)
+write.csv(train_set, file = file.path(output_dir, "train_set.csv"), 
+          row.names = FALSE)
+write.csv(validation_set, 
+          file = file.path(output_dir, "validation_set.csv"), 
+          row.names = FALSE)
+```
+
+## [Python] Compute ShapleyVIC values
+
+**This part of the workflow is implemented in Python.**
+
+- Load data and set up input information.
+- For ordinal outcome, specify `outcome_type='ordinal'`.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+import os
+import pandas as pd
+output_dir = "ord_output"
+dat_train = pd.read_csv(os.path.join(output_dir, 'train_set.csv'))
+dat_expl = pd.read_csv(os.path.join(output_dir, 'validation_set.csv'))
+
+y_name = 'label'
+from ShapleyVIC import model
+model_object = model.models(
+    x=dat_train.drop(columns=[y_name]), y=dat_train[y_name], 
+    x_names_cat=['Gender', 'Util_A', 'Comorb_A', 'Comorb_B', 'Comorb_C', 'Comorb_D', 'Comorb_E'],
+    outcome_type='ordinal', output_dir=output_dir
+)
+```
+
+- Set values for hyper-parameters `u1` and `u2`.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+u1, u2 = model_object.init_hyper_params()
+(u1, u2)
+```
+
+```
+(0.5, 43.75)
+```
+
+- Draw 250 nearly optimal models from 500 initial samples.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+model_object.draw_models(u1=u1, u2=u2, m=500, n_final=250, random_state=1234)
+model_object.models_plot
+```
+
+::: {.figure style="text-align: center"}
+<img src="ord_output/output.png" width="70%"/>
+:::
+
+::: {.figure style="text-align: center"}
+<img src="ord_output/output2.png" width="70%"/>
+:::
+
+- Compute ShapleyVIC values.
+
+```{python, eval=FALSE, python.reticulate = FALSE}
+from ShapleyVIC import compute
+m_svic = compute.compute_shapley_vic(
+    model_obj=model_object, 
+    x_expl=dat_expl.drop(columns=[y_name]), y_expl=dat_expl[y_name], 
+    n_cores=20, # running on a PC with 40 logical processors
+    threshold=0.05
+)
+```
+
+::: callout-note
+- *For users' reference, the command above took approximately 18 hours on a PC (Windows 10 Education; Intel(R) Xeon(R) Silver 4210 CPU @ 2.20GHz 2.19GHz (2 processors); 128GB RAM).*
+:::
+
+## [R] Develop prediction model
+
+**This part of the workflow is implemented in R.**
+
+### Overall variable importance from ShapleyVIC
+
+
+- Compile ShapleyVIC output.
+
+```{r}
+output_dir <- "ord_output"
+library(ShapleyVIC)
+model_object <- compile_shapley_vic(
+  output_dir = output_dir, outcome_type = "ordinal", 
+  x_names_cat = c('Gender', 'Util_A', 'Comorb_A', 'Comorb_B', 'Comorb_C', 
+                  'Comorb_D', 'Comorb_E')
+)
+```
+
+- Visualize ShapleyVIC values for overall variable importance.
+
+```{r}
+model_plots <- plot(model_object)
+```
+
+### ShapleyVIC-assisted backward selection
+
+- Identify variables with significant overall importance.
+
+```{r}
+vars_svic <- rank_variables(model_object, summarise = TRUE, as_vector = TRUE) %>%
+  names()
+vars_svic
+```
+
+- Starting with a model that include all variables above, develop a sparse 
+regression model using AIC-based stepwise selection (implemented by the MASS 
+package).
+- Using the ordinal package to develop ordinal regression models, more 
+specifically cumulative link model (CLM) with the logit link. 
+See [the ordinal package](https://cran.r-project.org/package=ordinal) for 
+detailed usage.
+
+```{r}
+# Model with all ShapleyVIC-selected variables:
+library(ordinal)
+m_svic_all <- clm(label ~ ., data = train_set[, c("label", vars_svic)])
+summary(m_svic_all)
+# Backward selection:
+library(MASS)
+m_svic <- stepAIC(object = m_svic_all, scope = list(upper = ~ ., lower = ~ 1), 
+                  trace = FALSE)
+summary(m_svic)
+# Variables selected:
+(x_svic <- setdiff(names(m_svic$model), "label"))
+```
+
+### Compare with conventional backward selection
+
+- Backward selection from all candidate variables.
+
+```{r}
+# Model with all variables:
+m_all <- clm(formula = label ~ ., data = train_set)
+summary(m_all)
+# Backward selection:
+m_back <- stepAIC(object = m_all, scope = list(upper = ~ ., lower = ~ 1), 
+                  trace = FALSE)
+summary(m_back)
+# Variables selected:
+(x_back <- setdiff(names(m_back$model), "label"))
+```
+
+- ShapleyVIC-assisted backward selection developed a more parsimonious model 
+(with `r length(x_svic)` variables) than conventional backward selection 
+(with `r length(x_back)` variables) without significantly impairing performance.
+
+```{r}
+# Performance of model from ShapleyVIC-assisted backward selection on test set:
+fx_svic <- model.matrix(~ ., data = test_set[, x_svic])[, -1] %*% m_svic$beta
+print_performance_ordinal(label = test_set$label, score = as.numeric(fx_svic), 
+                          n_boot = 100, report_cindex = TRUE)
+# Performance of model from conventional backward selection on test set:
+fx_back <- model.matrix(~ ., data = test_set[, x_back])[, -1] %*% m_back$beta
+print_performance_ordinal(label = test_set$label, score = as.numeric(fx_back), 
+                          n_boot = 100, report_cindex = TRUE)
+```
