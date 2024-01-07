@@ -10,7 +10,7 @@ from ._draw_models import *
 
 
 class models:
-    def __init__(self, x, y, output_dir, outcome_type="binary", x_names_cat=None, save_data=True):
+    def __init__(self, x, y, output_dir, outcome_type="binary", ordinal_link="logit", criterion="loss", epsilon = 0.05, x_names_cat=None, save_data=True):
         """ Initialise models by training optimal model
 
             Parameters
@@ -22,7 +22,14 @@ class models:
             output_dir : str
                 Folder to save all data and outputs to
             outcome_type : str, optional (default: "binary")
-                Type of outcome. Currently only supports binary
+                Type of outcome. Also support "continuous" and "ordinal".
+            ordinal_link : string, optional (default: "logit")
+                Link function for ordinal regression
+            criterion : str, optional (default: 'loss')
+                Criterion for defining nearly optimal, which can be 'loss' (default, any outcome type), 'auc' (binary outcome only) or 'prauc' (binary outcome only). 'loss' defines nearly optimal as loss less than (1+epsilon) times the minimum loss. 'auc' and 'prauc' define nearly optimal as having AUC or PRAUC within the 95% confidence interval of the optimal model.
+            epsilon : float, optional (default: 0.05)
+                If criterion='loss', nearly optimal models are defined as models with loss \
+                    less than (1+epsilon) times the minimum loss.
             x_names_cat : list, optional (default: None)
                 Names of categorical features, if any
             save_data : bool, optional (default: True)
@@ -30,6 +37,9 @@ class models:
                 must be supplied separately in subsequent R analysis.
 
         """
+        if criterion!='loss' and outcome_type!='binary':
+            raise ValueError('For non-binary outcomes, only criterion="loss" is supported.')
+        
         nan_in_x = x.isnull().sum().sum()
         if nan_in_x>0:
             raise ValueError('x contains NaN, which is not allowed')
@@ -45,9 +55,13 @@ class models:
             x_with_constant = sm.add_constant(x_dm)
             m0 = sm.GLM(y, x_with_constant, family=sm.families.Binomial())
             m = m0.fit()
-        # elif outcome_type == "ordinal":
-            # m0 = OrderedModel(y, x_dm, distr=link)
-            # m = m0.fit(method='bfgs')
+        elif outcome_type == "continuous":
+            x_with_constant = sm.add_constant(x_dm)
+            m0 = sm.OLS(y, x_with_constant)
+            m = m0.fit()
+        elif outcome_type == "ordinal":
+            m0 = OrderedModel(y, x_dm, distr=ordinal_link)
+            m = m0.fit(method='bfgs')
         else:
             raise ValueError('outcome type not yet supported')
         
@@ -59,6 +73,8 @@ class models:
         self.x = x
         self.y = y
         self.output_dir = output_dir
+        self.criterion = criterion
+        self.epsilon = epsilon
         
         if save_data:
             x.to_csv(os.path.join(output_dir, 'x.csv'))
@@ -67,8 +83,8 @@ class models:
         return None
 
 
-    def draw_models(self, u1, u2, m = 800, epsilon = 0.05, 
-                        n_final = 350, random_state = 1234):
+    # Following functions are agnostic to outcome types
+    def draw_models(self, u1, u2, m = 800, n_final = 350, random_state = 1234):
         """Generate nearly optimal logistic regression models from Rashomon set
 
             Parameters
@@ -81,28 +97,53 @@ class models:
                     ShapleyVIC.model.init_hyper_params
             m : int64, optional (default: 800)
                 Number of regression models to be generated around optimal model
-            epsilon : float, optional (default: 0.05)
-                Nearly optimal models are defined as models with loss \
-                    less than (1+epsilon) times the minimum loss.
+            criterion : str, optional (default: 'loss')
+                Criterion for defining nearly optimal, which can be 'loss' (default, any outcome type), 'auc' (binary outcome only) or 'prauc' (binary outcome only). 'loss' defines nearly optimal as loss less than (1+epsilon) times the minimum loss. 'auc' and 'prauc' define nearly optimal as having AUC or PRAUC within the 95% confidence interval based on the optimal model.
             n_final: int64, optional (default: 350)
                 Final number of nearly optimal models to select
             random_state : int64, optional (default: 1234)
                 Random seed
 
         """
-        # np.random.seed(random_state)
-        # rng = np.random.RandomState(random_state)
+
+        if self.criterion=="loss":
+            print(f"Nearly optimal defined based on {self.criterion} with epsilon={self.epsilon}.\n")
+        else:
+            print(f"Nearly optimal defined based on {self.criterion}.\n")
 
         coef_gen = draw_models_initial(
             coef_optim=self.model_optim.params, 
             coef_optim_var=self.model_optim.cov_params(), 
             m=m, u1=u1, u2=u2, random_state=random_state
         )
-        coef_elg = mark_eligibility(
-            coef_df=coef_gen, coef_optim=self.model_optim.params,
-            loss_func=self.model_prefit.loglike, 
-            criterion='loss', epsilon=epsilon
-        )
+        if self.criterion == 'loss':
+            coef_elg, perf_metric_optim = mark_elig_loss(
+                coef_df=coef_gen, coef_optim=self.model_optim.params,
+                loss_func=self.model_prefit.loglike, epsilon=self.epsilon
+            )
+        elif self.criterion == 'auc':
+            x_dm, x_groups = _util.model_matrix(
+                x=self.x, x_names_cat=self.x_names_cat
+            )
+            x_with_constant = sm.add_constant(x_dm)
+            coef_elg, perf_metric_optim = mark_elig_auc(
+                coef_df=coef_gen, coef_optim=self.model_optim.params, 
+                pred_func=self.model_optim.model.predict, 
+                x_with_constant=x_with_constant, y=self.y
+            )
+        elif self.criterion == 'prauc':
+            x_dm, x_groups = _util.model_matrix(
+                x=self.x, x_names_cat=self.x_names_cat
+            )
+            x_with_constant = sm.add_constant(x_dm)
+            coef_elg, perf_metric_optim = mark_elig_prauc(
+                coef_df=coef_gen, coef_optim=self.model_optim.params, 
+                pred_func=self.model_optim.model.predict, 
+                x_with_constant=x_with_constant, y=self.y
+            )
+        else:
+            raise ValueError('Other criterion not yet supported')
+        
         if n_final is not None:
             if np.sum(coef_elg['eligible']) <= n_final:
                 print('Not enough sampled models are eligible. \
@@ -112,14 +153,30 @@ class models:
                 df_rng = default_rng(seed=random_state)
                 select = np.where(coef_elg['eligible'] == True)[0]
                 select = df_rng.choice(select, n_final, replace=False)
-                # select = np.random.choice(select, n_final, replace=False)
-            n_points = int(epsilon/0.005)+1
-            x_breaks = np.linspace(1,1+epsilon, n_points)
-            plot = plot_perf_metric(
-                perf_metric=coef_elg['perf_metric'], eligible=coef_elg['eligible'],
-                x_range=[1, 1+epsilon], select=select,
-                plot_selected=True, x_breaks=x_breaks
-            )
+            if self.criterion == 'loss':
+                n_points = int(self.epsilon/0.005)+1
+                x_breaks = np.linspace(1,1+self.epsilon, n_points)
+                plot = plot_perf_metric(
+                    perf_metric=coef_elg['perf_metric'], 
+                    eligible=coef_elg['eligible'],
+                    x_range=[1, 1+self.epsilon], select=select,
+                    plot_selected=True, x_breaks=x_breaks
+                )
+            elif self.criterion == 'auc' or self.criterion == 'prauc':
+                n_points = 11
+                perf_metric_upper = np.max([np.max(coef_elg['perf_metric']), 
+                                            perf_metric_optim[2]])
+                x_breaks = np.linspace(
+                    perf_metric_optim[1],perf_metric_upper, n_points
+                )
+                plot = plot_perf_metric(
+                    perf_metric=coef_elg['perf_metric'], 
+                    eligible=coef_elg['eligible'],
+                    x_range=[perf_metric_optim[1], perf_metric_optim[2]], 
+                    select=select, plot_selected=True, x_breaks=x_breaks
+                )
+            else:
+                raise ValueError('Other criterion not yet supported')
             select_array = np.zeros(len(coef_elg), dtype=bool)
             select_array[select] = True
             coef_elg['selected'] = select_array
@@ -129,9 +186,10 @@ class models:
         else:
             plot = plot_perf_metric(perf_metric=coef_elg['perf_metric'], 
                                     eligible=coef_elg['eligible'],
-                                    x_range=[1, 1+epsilon])
+                                    x_range=[1, 1+self.epsilon])
         
         self.models_near_optim = coef_elg
+        self.perf_metric_optim = perf_metric_optim
         self.models_plot = plot
         coef_elg.to_csv(os.path.join(self.output_dir, 'models_near_optim.csv'))
         return None
@@ -158,22 +216,48 @@ class models:
             (u1, u2) Returns a tuple of reasonable values for u1 and u2.
         """
         random_state = 1234
-        # np.random.seed(random_state)
-        # rng = np.random.RandomState(random_state)
 
         k = 10
-
+        
+        if self.criterion=="loss":
+            print(f"Nearly optimal defined based on {self.criterion} with epsilon={self.epsilon}.\n")
+        else:
+            print(f"Nearly optimal defined based on {self.criterion}.\n")
+        
         df = draw_models_initial(
             coef_optim=self.model_optim.params, 
             coef_optim_var=self.model_optim.cov_params(), 
             m=m, u1=0, u2=1, random_state=random_state
         )
         
-        df = mark_eligibility(
-            coef_df=df, coef_optim=self.model_optim.params, 
-            loss_func=self.model_prefit.loglike, 
-            criterion="loss", epsilon=epsilon
-        )
+        if self.criterion == 'loss':
+            df, perf_metric_optim = mark_elig_loss(
+                coef_df=df, coef_optim=self.model_optim.params,
+                loss_func=self.model_prefit.loglike, epsilon=epsilon
+            )
+        elif self.criterion == 'auc':
+            x_dm, x_groups = _util.model_matrix(
+                x=self.x, x_names_cat=self.x_names_cat
+            )
+            x_with_constant = sm.add_constant(x_dm)
+            df, perf_metric_optim = mark_elig_auc(
+                coef_df=df, coef_optim=self.model_optim.params, 
+                pred_func=self.model_optim.model.predict, 
+                x_with_constant=x_with_constant, y=self.y
+            )
+        elif self.criterion == 'prauc':
+            x_dm, x_groups = _util.model_matrix(
+                x=self.x, x_names_cat=self.x_names_cat
+            )
+            x_with_constant = sm.add_constant(x_dm)
+            df, perf_metric_optim = mark_elig_prauc(
+                coef_df=df, coef_optim=self.model_optim.params, 
+                pred_func=self.model_optim.model.predict, 
+                x_with_constant=x_with_constant, y=self.y
+            )
+        else:
+            raise ValueError('Other criterion not yet supported')
+
         ratio = np.sum(df['eligible']) / m
 
         if ratio < min(ratio_range):
@@ -183,14 +267,37 @@ class models:
             u2_max = None
             u2_min = 1
         
-        u2 = find_u2(
-            u2_min=u2_min, u2_max=u2_max, 
-            coef_optim=self.model_optim.params, 
-            coef_optim_var=self.model_optim.cov_params(), 
-            loss_func=self.model_prefit.loglike, 
-            m=m, k=k, ratio_range=ratio_range, epsilon=epsilon,
-            random_state=random_state
-        )
+        if self.criterion == 'loss':
+            u2 = find_u2_loss(
+                u2_min=u2_min, u2_max=u2_max, 
+                coef_optim=self.model_optim.params, 
+                coef_optim_var=self.model_optim.cov_params(), 
+                loss_func=self.model_prefit.loglike, 
+                m=m, k=k, ratio_range=ratio_range, epsilon=epsilon,
+                random_state=random_state
+            )
+        elif self.criterion == 'auc':
+            u2 = find_u2_auc(
+                u2_min=u2_min, u2_max=u2_max, 
+                coef_optim=self.model_optim.params, 
+                coef_optim_var=self.model_optim.cov_params(), 
+                pred_func=self.model_optim.model.predict, 
+                x_with_constant=x_with_constant, y=self.y, 
+                m=m, k=k, ratio_range=ratio_range,
+                random_state=random_state
+            )
+        elif self.criterion == 'prauc':
+            u2 = find_u2_prauc(
+                u2_min=u2_min, u2_max=u2_max, 
+                coef_optim=self.model_optim.params, 
+                coef_optim_var=self.model_optim.cov_params(), 
+                pred_func=self.model_optim.model.predict, 
+                x_with_constant=x_with_constant, y=self.y, 
+                m=m, k=k, ratio_range=ratio_range,
+                random_state=random_state
+            )
+        else:
+            raise ValueError('Other criterion not yet supported')
         
         if u2 > 10:
             u1 = 0.5

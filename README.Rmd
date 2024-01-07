@@ -32,6 +32,7 @@ assessments of a single final model to avoid biased inference.
 
 ## Usage
 
+> ### ShapleyVIC version 1.2.0 now supports binary, ordinal and continuous outcomes.
 > ### Please visit our [bookdown page](https://nliulab.github.io/ShapleyVIC/) for a full tutorial on ShapleyVIC usage.
 
 ShapleyVIC analysis of variable importance consists of 3 general steps:

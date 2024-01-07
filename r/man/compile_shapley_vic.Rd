@@ -7,6 +7,7 @@
 compile_shapley_vic(
   output_dir,
   outcome_type,
+  criterion = "loss",
   x = NULL,
   y = NULL,
   x_names_cat = NULL,
@@ -18,15 +19,19 @@ compile_shapley_vic(
 the Python library.}
 
 \item{outcome_type}{A string indicating type of outcome. Currently
-supports \code{"binary", "continuous", "ordinal", "survival"}.}
+supports \code{"binary", "continuous", "ordinal"}.}
+
+\item{criterion}{Criterion for defining nearly optimal used in the Python
+workflow, which can be "loss" (default, any outcome type), "auc" (binary
+outcome only) or "prauc" (binary outcome only).}
 
 \item{x}{A \code{data.frame} of variables in the training set. Required if
 \code{x.csv} is not in \code{output_dir}. Ensure \code{x} is identical to 
-that used in the Python steps.}
+that used in the Python workflow.}
 
 \item{y}{A vector of the outcome variable in the training set. Required if
 \code{y.csv} is not in \code{output_dir}. Ensure \code{y} is identical to 
-that used in the Python steps.}
+that used in the Python workflow.}
 
 \item{x_names_cat}{A string vector indicating names of variables in raw data
 (i.e., \code{x}) to be treated as categorical. Must be the same as that

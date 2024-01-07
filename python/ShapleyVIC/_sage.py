@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import copy
 import sage
 import warnings
 
@@ -49,11 +48,17 @@ def compute_sage_values(model, coef_vec, x_expl_dm, y_expl, outcome_type,
         model.intercept_ = np.array([coef_vec[0]])
         model.coef_ = np.array([coef_vec[1:]])
         f = lambda x: model.predict_proba(x)
+        loss_type = 'cross entropy'
+    elif outcome_type == "continuous":
+        # use sklearn model, but no longer has predict_proba
+        model.intercept_ = np.array([coef_vec[0]])
+        model.coef_ = np.array([coef_vec[1:]])
+        f = lambda x: model.predict(x)
+        loss_type = 'mse'
     elif outcome_type == "ordinal":
         # ordinal, for now use statsmodel
-        model_new = copy.deepcopy(model)
-        model_new.params = pd.DataFrame(coef_vec)
-        f = lambda x: model.model.predict(params=model.params, exog=x)
+        f = lambda x: model.model.predict(params=coef_vec, exog=x)
+        loss_type = 'cross entropy'
     else:
         print("Other outcome_type not yet supported.\n")
         return None
@@ -65,7 +70,7 @@ def compute_sage_values(model, coef_vec, x_expl_dm, y_expl, outcome_type,
         else:
             sage_imp = sage.GroupedMarginalImputer(f, x_expl_dm, groups=x_groups)
     
-    sage_est = sage.PermutationEstimator(sage_imp, "cross entropy")
+    sage_est = sage.PermutationEstimator(sage_imp, loss_type)
     sage_val = sage_est(x_expl_dm.values, y_expl.values, bar=False, thresh=threshold)
 
     if var_names is None:

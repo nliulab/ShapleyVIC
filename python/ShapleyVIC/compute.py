@@ -7,6 +7,7 @@ from tqdm import tqdm
 from tqdm_joblib import tqdm_joblib
 from joblib import Parallel, delayed
 from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LinearRegression
 
 from . import _sage
 from . import _util
@@ -61,13 +62,22 @@ def compute_shapley_vic(model_obj, x_expl, y_expl, n_cores, threshold=0.05):
         model = LogisticRegression(random_state=0, solver="liblinear").fit(
             x_dm.values, model_obj.y.values
         )
+    elif model_obj.outcome_type == "continuous":
+        x_dm, x_groups = _util.model_matrix(x=model_obj.x, 
+            x_names_cat=model_obj.x_names_cat)
+        model = LinearRegression().fit(
+            x_dm.values, model_obj.y.values
+        )
+    elif model_obj.outcome_type == "ordinal":
+        model = model_obj.model_optim
     else:
         #model = model_obj.model_optim
         print(f"Other outcome type not yet supported.\n")
         return None
 
-    x_expl_dm, x_groups = _util.model_matrix(x=x_expl, 
-        x_names_cat=model_obj.x_names_cat)
+    x_expl_dm, x_groups = _util.model_matrix(
+        x=x_expl, x_names_cat=model_obj.x_names_cat
+    )
 
     start_time = time.perf_counter()
     models_list = model_obj.models_near_optim.values.tolist()

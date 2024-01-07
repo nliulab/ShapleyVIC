@@ -41,13 +41,16 @@ check_df_svic <- function(df_svic) {
 #' @param output_dir A string indicating path to the output folder created by
 #'   the Python library.
 #' @param outcome_type A string indicating type of outcome. Currently
-#'   supports \code{"binary", "continuous", "ordinal", "survival"}.
+#'   supports \code{"binary", "continuous", "ordinal"}.
+#' @param criterion Criterion for defining nearly optimal used in the Python
+#'   workflow, which can be "loss" (default, any outcome type), "auc" (binary
+#'   outcome only) or "prauc" (binary outcome only).
 #' @param x A \code{data.frame} of variables in the training set. Required if
 #'   \code{x.csv} is not in \code{output_dir}. Ensure \code{x} is identical to 
-#'   that used in the Python steps.
+#'   that used in the Python workflow.
 #' @param y A vector of the outcome variable in the training set. Required if
 #'   \code{y.csv} is not in \code{output_dir}. Ensure \code{y} is identical to 
-#'   that used in the Python steps.
+#'   that used in the Python workflow.
 #' @param x_names_cat A string vector indicating names of variables in raw data
 #'   (i.e., \code{x}) to be treated as categorical. Must be the same as that
 #'   used to compute ShapleyVIC values using the Python library.
@@ -61,12 +64,21 @@ check_df_svic <- function(df_svic) {
 #' @importFrom stats glm lm
 #' @importFrom utils read.csv
 #' @export
-compile_shapley_vic <- function(output_dir, outcome_type, x = NULL, y = NULL, 
+compile_shapley_vic <- function(output_dir, outcome_type, criterion = "loss", 
+                                x = NULL, y = NULL, 
                                 x_names_cat = NULL, x_names = NULL) {
   outcome_type <- match.arg(
-    arg = outcome_type, 
-    choices = c("binary", "continuous", "ordinal", "survival")
+    arg = tolower(outcome_type), 
+    choices = c("binary", "continuous", "ordinal")
   )
+  criterion <- match.arg(
+    arg = tolower(criterion), 
+    choices = c("loss", "auc", "prauc")
+  )
+  if (criterion != "loss" & outcome_type != "binary") {
+    stop(simpleError("For non-binary outcomes, only criterion='loss' is supported.\n Please enter the correct outcome_type and criterion used in the Python workflow."))
+  }
+  message(sprintf("Compiling results for %s outcome using %s criterion to define neaerly optimal models.", outcome_type, criterion))
   # x = NULL
   # y = NULL
   # Read ShapleyVIC output from Python library
@@ -141,7 +153,9 @@ compile_shapley_vic <- function(output_dir, outcome_type, x = NULL, y = NULL,
     val_sd = df_svic$sage_sd, var_names = df_svic$var_names
   )
   df_bar$significant <- df_bar$val_lower > 0
-  obj <- list(models = df_svic, overall_importance = df_bar)
+  obj <- list(models = df_svic, overall_importance = df_bar, 
+              criterion = criterion,
+              x = x, y = y)
   class(obj) <- "ShapleyVIC"
   obj
 }
@@ -190,12 +204,11 @@ plot_bars <- function(x, title = NULL, subtitle = NULL) {
 #' Make violin plot for ShapleyVIC findings
 #' @inheritParams draw_violins
 #' @inheritParams plot_bars
-#' @param criterion Criterion used to define nearly optimal. Default is "loss".
 #' @return Returns a violin plot. Use \code{plot_theme} to specify
 #'   \code{theme()} settings.
 #' @export
-plot_violin <- function(x, criterion = "loss", title = NULL, plot_theme = NULL) {
-  smaller_is_better <- criterion == "loss"
+plot_violin <- function(x, title = NULL, plot_theme = NULL) {
+  smaller_is_better <- x$criterion == "loss"
   df_svic <- x$models
   df_bar <- x$overall_importance
   var_ordering <- levels(df_bar$Variable)
@@ -217,16 +230,15 @@ plot_violin <- function(x, criterion = "loss", title = NULL, plot_theme = NULL) 
   }
 }
 #' Plot ShapleyVIC findings
-#' @inheritParams plot_violin
 #' @param x ShapleyVIC object generated using \code{\link{compile_shapley_vic}}.
 #' @param ... Not implemented
 #' @return Displays bar and violin plots and returns the two plot objects as a
 #'   list.
 #' @export
-plot.ShapleyVIC <- function(x, criterion = "loss", ...) {
+plot.ShapleyVIC <- function(x, ...) {
   p_bar <- plot_bars(x = x)
   plot(p_bar)
-  p_vio <- suppressMessages(plot_violin(x = x, criterion = criterion))
+  p_vio <- suppressMessages(plot_violin(x = x))
   plot(p_vio)
 }
 #' Print ShapleyVIC object

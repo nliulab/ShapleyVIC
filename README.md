@@ -2,23 +2,25 @@ ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine
 Learning
 ================
 
-- <a href="#shapleyvic-introduction"
-  id="toc-shapleyvic-introduction">ShapleyVIC Introduction</a>
-  - <a href="#usage" id="toc-usage">Usage</a>
-  - <a href="#installation" id="toc-installation">Installation</a>
-    - <a href="#python-library" id="toc-python-library">Python library</a>
-    - <a href="#r-package" id="toc-r-package">R package</a>
-  - <a href="#citation" id="toc-citation">Citation</a>
-    - <a href="#core-paper" id="toc-core-paper">Core paper</a>
-    - <a href="#method-extension" id="toc-method-extension">Method
-      extension</a>
-  - <a href="#contact" id="toc-contact">Contact</a>
+- [ShapleyVIC: Shapley Variable Importance Cloud for Interpretable
+  Machine
+  Learning](#shapleyvic-shapley-variable-importance-cloud-for-interpretable-machine-learning)
+- [ShapleyVIC Introduction](#shapleyvic-introduction)
+  - [Usage](#usage)
+  - [Installation](#installation)
+    - [Python library](#python-library)
+    - [R package](#r-package)
+  - [Citation](#citation)
+    - [Core paper](#core-paper)
+    - [Method extension](#method-extension)
+  - [Contact](#contact)
 
 <!-- badges: start -->
 
 [![](https://img.shields.io/badge/doi-j.patter.2022.100452-yellow.svg)](https://doi.org/10.1016/j.patter.2022.100452)
 <!-- badges: end -->
 
+# ShapleyVIC: Shapley Variable Importance Cloud for Interpretable Machine Learning
 
 > ### ShapleyVIC is now implemented by combining a Python library and an R package. Previous version of the R package is archived in `Historical version` subdirectory.
 
@@ -45,6 +47,8 @@ inference.
 
 ## Usage
 
+> ### ShapleyVIC version 1.2.0 now supports binary, ordinal and continuous outcomes.
+>
 > ### Please visit our [bookdown page](https://nliulab.github.io/ShapleyVIC/) for a full tutorial on ShapleyVIC usage.
 
 ShapleyVIC analysis of variable importance consists of 3 general steps:
