@@ -241,9 +241,9 @@ def plot_perf_metric(perf_metric, eligible, x_range, select = None,
             )
         ) + \
         pn.themes.theme_bw() + \
-        pn.themes.theme(title=pn.themes.element_text(ha = 'left'),
-            axis_title_x= pn.themes.element_text(ha = 'center'),
-            axis_title_y= pn.themes.element_text(ha = 'center'))
+        pn.themes.theme(title=pn.element_text(ha = 'left'),
+            axis_title_x= pn.element_text(ha = 'center'),
+            axis_title_y= pn.element_text(ha = 'center'))
     if plot_selected:
         if select is None:
             print('\'select\' vector is not specified!\nUsing all models instead')
@@ -259,9 +259,9 @@ def plot_perf_metric(perf_metric, eligible, x_range, select = None,
             pn.labels.labs(x = "Ratio of loss to minimum loss",
                 title = "{n_select:d} selected models".format(n_select = len(select))) + \
             pn.themes.theme_bw() + \
-            pn.themes.theme(title=pn.themes.element_text(ha = 'left'),
-                axis_title_x= pn.themes.element_text(ha = 'center'),
-                axis_title_y= pn.themes.element_text(ha = 'center'))
+            pn.themes.theme(title=pn.element_text(ha = 'left'),
+                axis_title_x= pn.element_text(ha = 'center'),
+                axis_title_y= pn.element_text(ha = 'center'))
         return (plot,plot2)
     else:
         return plot
