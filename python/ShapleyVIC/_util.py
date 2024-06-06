@@ -39,7 +39,7 @@ def model_matrix(x, x_names_cat=None):
             if x_names[i] in x_names_cat:
                 # x_i is categorical
                 xi_dm = pd.get_dummies(x[x_names[i]], prefix=x_names[i], 
-                    drop_first=True)
+                    drop_first=True, dtype=int)
                 j_new = j + xi_dm.shape[1]
             else:
                 xi_dm = pd.DataFrame(x[x_names[i]])
